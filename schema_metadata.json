@@ -1,22 +1,442 @@
 {
   "schema_version": "2026-05-10",
+
+  "database_overview": {
+    "name": "Olist Brazilian E-Commerce Dataset",
+    "description": "Relational e-commerce business warehouse containing customers, orders, products, sellers, payments, reviews, and geolocation data.",
+    "primary_business_domain": "E-Commerce Analytics",
+    "main_use_cases": [
+      "Revenue analysis",
+      "Customer behavior analysis",
+      "Delivery performance analysis",
+      "Product category analysis",
+      "Seller performance analysis",
+      "Payment behavior analysis",
+      "Review and satisfaction analysis"
+    ]
+  },
+
   "tables": [
-    {"name": "customers", "description": "Customer identity and location", "columns": ["customer_id", "customer_unique_id", "customer_zip_code_prefix", "customer_city", "customer_state"]},
-    {"name": "orders", "description": "Order lifecycle and timestamps", "columns": ["order_id", "customer_id", "order_status", "order_purchase_timestamp", "order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date", "order_estimated_delivery_date"]},
-    {"name": "order_items", "description": "Item-level order details", "columns": ["order_id", "order_item_id", "product_id", "seller_id", "shipping_limit_date", "price", "freight_value"]},
-    {"name": "order_payments", "description": "Payment information", "columns": ["order_id", "payment_sequential", "payment_type", "payment_installments", "payment_value"]},
-    {"name": "order_reviews", "description": "Customer reviews", "columns": ["review_id", "order_id", "review_score", "review_comment_title", "review_comment_message", "review_creation_date", "review_answer_timestamp"]},
-    {"name": "products", "description": "Product metadata", "columns": ["product_id", "product_category_name", "product_name_lenght", "product_description_lenght", "product_photos_qty", "product_weight_g", "product_length_cm", "product_height_cm", "product_width_cm"]},
-    {"name": "sellers", "description": "Seller location", "columns": ["seller_id", "seller_zip_code_prefix", "seller_city", "seller_state"]},
-    {"name": "geolocation", "description": "ZIP code geolocation mapping", "columns": ["geolocation_zip_code_prefix", "geolocation_lat", "geolocation_lng", "geolocation_city", "geolocation_state"]},
-    {"name": "product_category_name_translation", "description": "Category translation mapping", "columns": ["product_category_name", "product_category_name_english"]}
+
+    {
+      "name": "customers",
+      "description": "Customer identity and customer location information.",
+
+      "business_rules": [
+        "Use customer_unique_id for repeat customer analysis.",
+        "One customer_unique_id may have multiple customer_id values."
+      ],
+
+      "primary_key": "customer_id",
+
+      "columns": [
+        {
+          "name": "customer_id",
+          "description": "Order-level customer identifier.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "customer_unique_id",
+          "description": "Persistent customer identity across multiple orders.",
+          "semantic_type": "business_identifier"
+        },
+        {
+          "name": "customer_zip_code_prefix",
+          "description": "Customer ZIP code prefix.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "customer_city",
+          "description": "Customer city.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "customer_state",
+          "description": "Brazilian state abbreviation.",
+          "semantic_type": "location"
+        }
+      ]
+    },
+
+    {
+      "name": "orders",
+      "description": "Order lifecycle and operational timestamps.",
+
+      "business_rules": [
+        "order_purchase_timestamp is the main purchase timestamp.",
+        "Use DATE_TRUNC for monthly or yearly trend analysis."
+      ],
+
+      "primary_key": "order_id",
+
+      "columns": [
+        {
+          "name": "order_id",
+          "description": "Unique order identifier.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "customer_id",
+          "description": "Foreign key to customers table.",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "order_status",
+          "description": "Current order status.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "order_purchase_timestamp",
+          "description": "Timestamp when the order was placed.",
+          "semantic_type": "timestamp"
+        },
+        {
+          "name": "order_approved_at",
+          "description": "Timestamp when payment was approved.",
+          "semantic_type": "timestamp"
+        },
+        {
+          "name": "order_delivered_carrier_date",
+          "description": "Timestamp when order was handed to carrier.",
+          "semantic_type": "timestamp"
+        },
+        {
+          "name": "order_delivered_customer_date",
+          "description": "Timestamp when customer received the order.",
+          "semantic_type": "timestamp"
+        },
+        {
+          "name": "order_estimated_delivery_date",
+          "description": "Estimated delivery date.",
+          "semantic_type": "timestamp"
+        }
+      ]
+    },
+
+    {
+      "name": "order_items",
+      "description": "Item-level transaction details for each order.",
+
+      "business_rules": [
+        "price excludes shipping cost.",
+        "freight_value represents shipping cost."
+      ],
+
+      "columns": [
+        {
+          "name": "order_id",
+          "description": "Foreign key to orders table.",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "order_item_id",
+          "description": "Sequential item number inside an order.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "product_id",
+          "description": "Foreign key to products table.",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "seller_id",
+          "description": "Foreign key to sellers table.",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "shipping_limit_date",
+          "description": "Shipping deadline timestamp.",
+          "semantic_type": "timestamp"
+        },
+        {
+          "name": "price",
+          "description": "Product selling price excluding shipping.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "freight_value",
+          "description": "Shipping cost for the item.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+
+    {
+      "name": "order_payments",
+      "description": "Payment information for each order.",
+
+      "business_rules": [
+        "payment_value represents total transaction amount."
+      ],
+
+      "columns": [
+        {
+          "name": "order_id",
+          "description": "Foreign key to orders table.",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "payment_sequential",
+          "description": "Payment sequence number.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "payment_type",
+          "description": "Payment method used by customer.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "payment_installments",
+          "description": "Number of installments.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "payment_value",
+          "description": "Total payment amount.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+
+    {
+      "name": "order_reviews",
+      "description": "Customer review and satisfaction information.",
+
+      "business_rules": [
+        "review_score ranges from 1 to 5."
+      ],
+
+      "columns": [
+        {
+          "name": "review_id",
+          "description": "Unique review identifier.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "order_id",
+          "description": "Foreign key to orders table.",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "review_score",
+          "description": "Customer satisfaction score from 1 to 5.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "review_comment_title",
+          "description": "Review title.",
+          "semantic_type": "text"
+        },
+        {
+          "name": "review_comment_message",
+          "description": "Review text message.",
+          "semantic_type": "text"
+        },
+        {
+          "name": "review_creation_date",
+          "description": "Review creation timestamp.",
+          "semantic_type": "timestamp"
+        },
+        {
+          "name": "review_answer_timestamp",
+          "description": "Timestamp when review was answered.",
+          "semantic_type": "timestamp"
+        }
+      ]
+    },
+
+    {
+      "name": "products",
+      "description": "Product metadata and physical dimensions.",
+
+      "business_rules": [
+        "Product names are not available.",
+        "Use translated category names for business-friendly output."
+      ],
+
+      "primary_key": "product_id",
+
+      "columns": [
+        {
+          "name": "product_id",
+          "description": "Unique product identifier.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "product_category_name",
+          "description": "Product category in Portuguese.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "product_name_lenght",
+          "description": "Length of product name text.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_description_lenght",
+          "description": "Length of product description.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_photos_qty",
+          "description": "Number of product photos.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_weight_g",
+          "description": "Product weight in grams.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_length_cm",
+          "description": "Product length in centimeters.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_height_cm",
+          "description": "Product height in centimeters.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_width_cm",
+          "description": "Product width in centimeters.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+
+    {
+      "name": "sellers",
+      "description": "Seller identity and location information.",
+
+      "primary_key": "seller_id",
+
+      "columns": [
+        {
+          "name": "seller_id",
+          "description": "Unique seller identifier.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "seller_zip_code_prefix",
+          "description": "Seller ZIP code prefix.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "seller_city",
+          "description": "Seller city.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "seller_state",
+          "description": "Seller state abbreviation.",
+          "semantic_type": "location"
+        }
+      ]
+    },
+
+    {
+      "name": "geolocation",
+      "description": "ZIP code geolocation mapping.",
+
+      "columns": [
+        {
+          "name": "geolocation_zip_code_prefix",
+          "description": "ZIP code prefix.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "geolocation_lat",
+          "description": "Latitude coordinate.",
+          "semantic_type": "coordinate"
+        },
+        {
+          "name": "geolocation_lng",
+          "description": "Longitude coordinate.",
+          "semantic_type": "coordinate"
+        },
+        {
+          "name": "geolocation_city",
+          "description": "City name.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "geolocation_state",
+          "description": "State abbreviation.",
+          "semantic_type": "location"
+        }
+      ]
+    },
+
+    {
+      "name": "product_category_name_translation",
+      "description": "Translation mapping for product categories.",
+
+      "business_rules": [
+        "Prefer English category names for business-facing outputs."
+      ],
+
+      "columns": [
+        {
+          "name": "product_category_name",
+          "description": "Portuguese category name.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "product_category_name_english",
+          "description": "English-translated category name.",
+          "semantic_type": "categorical"
+        }
+      ]
+    }
+
   ],
+
   "relationships": [
-    "orders.customer_id -> customers.customer_id",
-    "order_items.order_id -> orders.order_id",
-    "order_items.product_id -> products.product_id",
-    "order_items.seller_id -> sellers.seller_id",
-    "order_payments.order_id -> orders.order_id",
-    "order_reviews.order_id -> orders.order_id"
+    {
+      "source": "orders.customer_id",
+      "target": "customers.customer_id",
+      "relationship_type": "many_to_one"
+    },
+    {
+      "source": "order_items.order_id",
+      "target": "orders.order_id",
+      "relationship_type": "many_to_one"
+    },
+    {
+      "source": "order_items.product_id",
+      "target": "products.product_id",
+      "relationship_type": "many_to_one"
+    },
+    {
+      "source": "order_items.seller_id",
+      "target": "sellers.seller_id",
+      "relationship_type": "many_to_one"
+    },
+    {
+      "source": "order_payments.order_id",
+      "target": "orders.order_id",
+      "relationship_type": "many_to_one"
+    },
+    {
+      "source": "order_reviews.order_id",
+      "target": "orders.order_id",
+      "relationship_type": "many_to_one"
+    },
+    {
+      "source": "products.product_category_name",
+      "target": "product_category_name_translation.product_category_name",
+      "relationship_type": "many_to_one"
+    }
+  ],
+
+  "global_business_rules": [
+    "Try to find business-friendly aggregation levels for metrics.",
+    "try to find names instead of IDs when possible.",
+    "if there is names, return just the names instead of the IDs. except explicitly requested to return the IDs.",
+    "Prefer translated English category names when available.",
+    "Use customer_unique_id for repeat customer analysis.",
+    "Avoid returning raw identifiers unless explicitly requested.",
+    "Prefer business-friendly aggregation levels."
   ]
 }

@@ -44,7 +44,11 @@ def ensure_metadata_tables():
         conn.execute(text(ddl))
 
 
-def has_successful_run(source_file: str, checksum: str, target_table: str) -> bool:
+def has_successful_run(
+    source_file: str,
+    checksum: str,
+    target_table: str
+) -> bool:
     q = text(
         """
         select 1 from ingestion_runs
@@ -59,7 +63,16 @@ def has_successful_run(source_file: str, checksum: str, target_table: str) -> bo
         return conn.execute(q, {"source_file": source_file, "checksum": checksum, "target_table": target_table}).first() is not None
 
 
-def record_run(run_id: str, source_file: str, checksum: str, target_table: str, status: str, total_rows: int = 0, processed_chunks: int = 0, inserted_rows: int = 0):
+def record_run(
+    run_id: str,
+    source_file: str,
+    checksum: str,
+    target_table: str,
+    status: str,
+    total_rows: int = 0,
+    processed_chunks: int = 0,
+    inserted_rows: int = 0
+):
     now = datetime.now(timezone.utc)
     with engine.begin() as conn:
         conn.execute(text("""
@@ -141,9 +154,9 @@ def ingest_all():
                 inserted_rows += len(chunk.index)
                 record_run(run_id, file, checksum, table_name, "running", total_rows=total_rows, processed_chunks=processed_chunks, inserted_rows=inserted_rows)
 
-            with engine.begin() as conn:
-                conn.execute(text(f"drop table if exists {table_name}"))
-                conn.execute(text(f"alter table {staging_table} rename to {table_name}"))
+            # with engine.begin() as conn:
+            #     conn.execute(text(f"truncate table {table_name} cascade"))
+            #     conn.execute(text(f"alter table {staging_table} rename to {table_name}"))
 
             record_run(run_id, file, checksum, table_name, "success", total_rows=total_rows, processed_chunks=processed_chunks, inserted_rows=inserted_rows)
         except Exception:
