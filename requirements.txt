@@ -4,3 +4,5 @@ python-dotenv
 openai
 streamlit
 tqdm
+pandas
+kagglehub
