@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from openai import OpenAI
 
+from schema import SCHEMA
+
 load_dotenv()
 
 # ======================
@@ -37,19 +39,6 @@ question = st.text_input(
 )
 
 if question:
-
-    schema = """
-    Table: sales
-
-    Columns:
-    - order_date
-    - sales
-    - profit
-    - category
-    - product_name
-    - region
-    """
-
     prompt = f"""
     You are a PostgreSQL expert.
 
@@ -58,7 +47,7 @@ if question:
     Return ONLY SQL Query without backticks and explanations.
 
     Schema:
-    {schema}
+    {SCHEMA}
 
     Question:
     {question}
@@ -75,14 +64,32 @@ if question:
     )
 
     generated_sql = response.choices[0].message.content
+    sql_upper = generated_sql.upper()
 
-    st.code(generated_sql, language="sql")
+    forbidden_keywords = [
+        "DROP",
+        "DELETE",
+        "UPDATE",
+        "INSERT",
+        "ALTER",
+        "TRUNCATE",
+        "CREATE",
+        "GRANT",
+        "REVOKE"
+    ]
 
-    with engine.connect() as conn:
-        result = conn.execute(text(generated_sql))
+    if any(keyword in sql_upper for keyword in forbidden_keywords):
+        st.error("Dangerous SQL detected!")
+    else:
+        st.code(generated_sql, language="sql")
+        with engine.connect() as conn:
+            result = conn.execute(text(generated_sql))
+            rows = result.fetchall()
+            columns = result.keys()
 
-        rows = result.fetchall()
+        df_result = pd.DataFrame(
+            rows,
+            columns=columns
+        )
 
-    df_result = pd.DataFrame(rows)
-
-    st.dataframe(df_result)
+        st.dataframe(df_result)
