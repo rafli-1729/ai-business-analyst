@@ -1,145 +1,278 @@
-# AI Business Analyst
+# Relational AI Analyst
 
-An AI-powered Natural Language Query (NLQ) application that allows users to ask business questions in plain English and automatically generates SQL queries to retrieve insights from a PostgreSQL database.
+An AI-powered business intelligence system that transforms natural language questions into analytical PostgreSQL queries using a relational business warehouse.
 
-## Overview
+This project is designed as an intermediate AI engineering project focused on:
+- relational database analytics
+- semantic-aware SQL generation
+- AI orchestration
+- business intelligence workflows
+- agentic AI foundations
 
-This project demonstrates an end-to-end AI analytics workflow:
+---
 
-1. Public dataset ingestion
-2. Data cleaning and preprocessing
-3. PostgreSQL cloud database integration using Supabase
-4. SQL query generation using LLMs via OpenRouter
-5. Automated query execution
-6. Interactive analytics interface using Streamlit
+## Project Goals
 
-The application enables users to interact with structured business data without writing SQL manually.
+The main goal of this project is to simulate a realistic AI-powered analytics workflow used in modern business intelligence systems.
+
+The system allows users to:
+1. Ingest relational business datasets into PostgreSQL (Supabase)
+2. Query relational data using natural language
+3. Generate analytical SQL automatically using LLMs
+4. Execute safe SQL queries
+5. Return business insights interactively
+
+This project focuses heavily on:
+- relational reasoning
+- schema understanding
+- semantic metadata engineering
+- AI-assisted analytics
+- system orchestration
 
 ---
 
 ## Tech Stack
 
-* Python
-* Supabase (PostgreSQL database)
-* OpenRouter (LLM API gateway)
-* Streamlit (web interface)
-* SQLAlchemy
-* Pandas
+### Database
+- Supabase PostgreSQL
+
+### LLM Provider
+- OpenRouter
+
+### Frontend
+- Streamlit
+
+### Data Processing
+- pandas
+- SQLAlchemy
+
+### Dataset
+- Olist Brazilian E-Commerce Dataset
 
 ---
 
-## Features
+## Current Features
 
-* Natural language to SQL conversion
-* Real-time database querying
-* Cloud PostgreSQL integration
-* Interactive Streamlit dashboard
-* Schema-aware prompting
-* Dynamic business analytics workflow
+### Relational Data Warehouse
+
+Multi-table business warehouse using:
+- customers
+- orders
+- order_items
+- order_payments
+- order_reviews
+- products
+- sellers
+- geolocation
+
+---
+
+### Chunked Data Ingestion
+
+Efficient ingestion pipeline with:
+- chunked CSV loading
+- datetime conversion
+- tqdm progress tracking
+- scalable loading strategy
+
+---
+
+### Natural Language to SQL
+
+Users can ask business questions such as:
+- "Top product categories by revenue"
+- "Monthly revenue growth trend"
+- "States with the highest number of orders"
+
+The LLM automatically generates PostgreSQL queries.
+
+---
+
+### Semantic Schema Layer
+
+The system uses a business-aware semantic schema containing:
+- table descriptions
+- column descriptions
+- relationship metadata
+- business rules
+- analytical guidance
+
+This improves:
+- SQL generation quality
+- business understanding
+- semantic reasoning
+- aggregation behavior
+
+---
+
+### Relational Query Reasoning
+
+The AI system supports:
+- multi-table JOIN generation
+- aggregation queries
+- trend analysis
+- ranking queries
+- analytical KPI generation
+
+---
+
+### SQL Safety Guard
+
+The system blocks dangerous SQL execution such as:
+- DROP
+- DELETE
+- UPDATE
+- ALTER
+- TRUNCATE
+- INSERT
+- CREATE
+
+Only analytical SELECT queries are allowed.
+
+---
+
+## Planned V2 Improvements
+
+### 1. LLM Validation & Retry Loop
+
+Implement automatic SQL repair when:
+- query execution fails
+- query returns empty results
+- datatype mismatch occurs
+
+---
+
+### 2. AI Summary Layer
+
+Generate executive-style business summaries from query results.
+
+Example:
+
+> "Health & Beauty products generated the highest revenue during the selected period."
+
+---
+
+### 3. Automatic Visualization Layer
+
+Generate charts dynamically based on query output.
+
+Planned visualizations:
+- line charts
+- bar charts
+- KPI cards
+- trend analysis
+
+---
+
+### 4. Query Observability
+
+Track:
+- generated SQL
+- execution time
+- query failures
+- retry attempts
+
+---
+
+### 5. Database Optimization
+
+Planned improvements:
+- PostgreSQL COPY ingestion
+- automatic index creation
+- automatic foreign key creation
+
+---
+
+### 6. Semantic Metadata Expansion
+
+Improve business-aware reasoning using:
+- metric definitions
+- semantic aliases
+- aggregation preferences
+- ontology-style metadata
+
+---
+
+### 7. Modular Architecture Refactor
+
+Planned structure:
+
+project/
+│
+├── app.py
+├── ingest.py
+├── schema.py
+├── prompts.py
+├── validator.py
+│
+├── utils/
+│   ├── db.py
+│   ├── llm.py
+│   └── visualization.py
+
+---
+
+### 8. Better Prompt Engineering
+
+Improve:
+- semantic query understanding
+- aggregation granularity
+- business-friendly outputs
+- human-readable query generation
+
+---
+
+### 9. Conversational Analytics
+
+Enable contextual follow-up questions such as:
+- "What about only in 2018?"
+- "Compare it with the previous year."
+
+---
+
+### 10. Performance Improvements
+
+Future optimizations:
+- caching
+- query optimization
+- asynchronous execution
+- better ingestion throughput
 
 ---
 
 ## Example Workflow
 
-User Question:
-
-```text id="tjlwm4"
-What are the top 5 most profitable products after 2013?
-```
-
-LLM Generated SQL:
-
-```sql id="7jlwm5"
-SELECT product_name, SUM(profit) AS total_profit
-FROM sales
-WHERE order_date > '2013-12-31'
-GROUP BY product_name
-ORDER BY total_profit DESC
-LIMIT 5;
-```
-
-Result:
-
-* Executes directly against Supabase PostgreSQL
-* Returns structured business insights
+User Question
+↓
+LLM SQL Generation
+↓
+SQL Safety Validation
+↓
+PostgreSQL Query Execution
+↓
+Result Visualization
+↓
+AI Business Summary
 
 ---
 
-## Project Structure
+## Example Questions
 
-```text id="5jlwm6"
-ai-business-analyst/
-│
-├── app.py
-├── ingest.py
-├── query.py
-├── requirements.txt
-├── .env
-├── .gitignore
-└── data/
-    └── sales.csv
-```
+- Which states generate the highest revenue?
+- What are the top product categories by sales?
+- Monthly revenue growth trend
+- Which payment methods have the highest average transaction value?
+- Which categories have the best customer review scores?
 
 ---
 
-## Setup
+## Learning Objectives
 
-### 1. Clone Repository
-
-```bash id="4jlwm7"
-git clone <your-repository-url>
-cd ai-business-analyst
-```
-
-### 2. Install Dependencies
-
-```bash id="6jlwm8"
-pip install -r requirements.txt
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env` file:
-
-```env id="3jlwm9"
-SUPABASE_DB_URL=your_supabase_connection_string
-OPENROUTER_API_KEY=your_openrouter_api_key
-```
-
-### 4. Run Data Ingestion
-
-```bash id="1jlwm0"
-python ingest.py
-```
-
-### 5. Start Application
-
-```bash id="9jlwm1"
-streamlit run app.py
-```
-
----
-
-## Future Improvements
-
-* SQL safety validation
-* Read-only database enforcement
-* Conversational memory
-* AI-generated business summaries
-* Dynamic schema extraction
-* Multi-table relational querying
-* Frontend deployment with Vercel
-
----
-
-## Purpose
-
-This project was built to explore modern AI engineering workflows involving:
-
-* AI orchestration
-* LLM integration
-* Data systems
-* Natural language analytics
-* End-to-end MVP development
-
-It focuses on practical AI application engineering rather than model training.
+This project is intended to explore:
+- relational database engineering
+- AI-assisted analytics
+- semantic metadata systems
+- LLM orchestration
+- NLQ-to-SQL systems
+- business intelligence workflows
+- agentic AI foundations
