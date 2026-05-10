@@ -1,6 +1,8 @@
 import hashlib
+import io
 import math
 import os
+import time
 import uuid
 from datetime import datetime, timezone
 
@@ -8,6 +10,7 @@ import kagglehub
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from psycopg2 import sql
 from tqdm import tqdm
 
 load_dotenv()
@@ -15,6 +18,67 @@ load_dotenv()
 DB_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DB_URL, connect_args={"sslmode": "require"})
 CHUNK_SIZE = 60000
+BENCHMARK_TOP_TABLES = 2
+
+
+def quote_ident(name: str) -> sql.Identifier:
+    return sql.Identifier(name)
+
+
+def copy_chunk_to_postgres(df: pd.DataFrame, table_name: str, sa_engine) -> None:
+    if df.empty:
+        return
+
+    raw_conn = sa_engine.raw_connection()
+    try:
+        with raw_conn.cursor() as cursor:
+            buffer = io.StringIO()
+            df.to_csv(buffer, index=False)
+            buffer.seek(0)
+
+            column_identifiers = [quote_ident(col) for col in df.columns]
+            copy_stmt = sql.SQL("COPY {} ({}) FROM STDIN WITH (FORMAT CSV, HEADER TRUE)").format(
+                quote_ident(table_name),
+                sql.SQL(", ").join(column_identifiers),
+            )
+            cursor.copy_expert(copy_stmt.as_string(raw_conn), buffer)
+        raw_conn.commit()
+    except Exception:
+        raw_conn.rollback()
+        raise
+    finally:
+        raw_conn.close()
+
+
+def write_chunk_with_fallback(df: pd.DataFrame, table_name: str, sa_engine) -> str:
+    try:
+        copy_chunk_to_postgres(df, table_name, sa_engine)
+        return "copy"
+    except Exception as copy_error:
+        print(f"COPY failed for table={table_name} chunk_rows={len(df.index)}. Falling back to to_sql append. Error: {copy_error}")
+        df.to_sql(table_name, sa_engine, if_exists="append", index=False, method="multi", chunksize=CHUNK_SIZE)
+        return "fallback_to_sql"
+
+
+def benchmark_chunk_write(df: pd.DataFrame, table_name: str, sa_engine) -> None:
+    benchmark_old_table = f"bench_old_{table_name}"
+    benchmark_copy_table = f"bench_copy_{table_name}"
+
+    start_old = time.perf_counter()
+    df.head(0).to_sql(benchmark_old_table, sa_engine, if_exists="replace", index=False)
+    df.to_sql(benchmark_old_table, sa_engine, if_exists="append", index=False, method="multi", chunksize=CHUNK_SIZE)
+    old_elapsed = time.perf_counter() - start_old
+
+    start_copy = time.perf_counter()
+    df.head(0).to_sql(benchmark_copy_table, sa_engine, if_exists="replace", index=False)
+    copy_chunk_to_postgres(df, benchmark_copy_table, sa_engine)
+    copy_elapsed = time.perf_counter() - start_copy
+
+    with sa_engine.begin() as conn:
+        conn.execute(text(f'DROP TABLE IF EXISTS "{benchmark_old_table}"'))
+        conn.execute(text(f'DROP TABLE IF EXISTS "{benchmark_copy_table}"'))
+
+    print(f"Benchmark table={table_name}: old_method={old_elapsed:.2f}s vs copy_method={copy_elapsed:.2f}s (chunk_rows={len(df.index)})")
 
 
 def file_checksum(path: str) -> str:
@@ -91,6 +155,13 @@ def ingest_all():
     path = kagglehub.dataset_download("olistbr/brazilian-ecommerce")
     files = os.listdir(path)
 
+    file_rows = {}
+    for file in files:
+        file_path = f"{path}/{file}"
+        file_rows[file] = max(sum(1 for _ in open(file_path, encoding="utf-8")) - 1, 0)
+
+    largest_files = {f for f, _ in sorted(file_rows.items(), key=lambda item: item[1], reverse=True)[:BENCHMARK_TOP_TABLES]}
+
     for file in files:
         file_path = f"{path}/{file}"
         table_name = file.replace(".csv", "").replace("olist_", "").replace("_dataset", "")
@@ -101,7 +172,7 @@ def ingest_all():
             continue
 
         run_id = str(uuid.uuid4())
-        total_rows = max(sum(1 for _ in open(file_path, encoding="utf-8")) - 1, 0)
+        total_rows = file_rows[file]
         total_chunks = math.ceil(total_rows / CHUNK_SIZE) if total_rows else 0
 
         print(f"\nIngesting table: {table_name}")
@@ -127,23 +198,24 @@ def ingest_all():
                 for col in datetime_cols.intersection(chunk.columns):
                     chunk[col] = pd.to_datetime(chunk[col], errors="coerce")
 
-                chunk.to_sql(
-                    staging_table,
-                    engine,
-                    if_exists="replace" if first_chunk else "append",
-                    index=False,
-                    method="multi",
-                    chunksize=CHUNK_SIZE,
-                )
+                if first_chunk:
+                    chunk.head(0).to_sql(staging_table, engine, if_exists="replace", index=False)
+
+                    if file in largest_files:
+                        benchmark_chunk_write(chunk, table_name, engine)
+
+                write_mode = write_chunk_with_fallback(chunk, staging_table, engine)
 
                 first_chunk = False
                 processed_chunks += 1
                 inserted_rows += len(chunk.index)
+                if write_mode == "fallback_to_sql":
+                    print(f"Chunk {processed_chunks} for table {table_name} persisted via fallback to_sql.")
                 record_run(run_id, file, checksum, table_name, "running", total_rows=total_rows, processed_chunks=processed_chunks, inserted_rows=inserted_rows)
 
             with engine.begin() as conn:
-                conn.execute(text(f"drop table if exists {table_name}"))
-                conn.execute(text(f"alter table {staging_table} rename to {table_name}"))
+                conn.execute(text(f'DROP TABLE IF EXISTS "{table_name}"'))
+                conn.execute(text(f'ALTER TABLE "{staging_table}" RENAME TO "{table_name}"'))
 
             record_run(run_id, file, checksum, table_name, "success", total_rows=total_rows, processed_chunks=processed_chunks, inserted_rows=inserted_rows)
         except Exception:
