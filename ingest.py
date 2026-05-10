@@ -61,7 +61,7 @@ def copy_chunk_to_postgres(df: pd.DataFrame, table_name: str, sa_engine) -> None
                 quote_ident(table_name),
                 sql.SQL(", ").join(column_identifiers),
             )
-            cursor.copy_expert(copy_stmt.as_string(raw_conn), buffer)
+            cursor.copy_expert(copy_stmt.as_string(cursor), buffer)
         raw_conn.commit()
     except Exception:
         raw_conn.rollback()
@@ -213,6 +213,7 @@ def record_run(run_id: str, source_file: str, checksum: str, target_table: str, 
 def ingest_all():
     ensure_metadata_tables()
     relationships = load_relationships_from_metadata()
+    loaded_tables = set()
 
     path = kagglehub.dataset_download("olistbr/brazilian-ecommerce")
     files = os.listdir(path)
@@ -279,13 +280,17 @@ def ingest_all():
                 conn.execute(text(f'DROP TABLE IF EXISTS "{table_name}"'))
                 conn.execute(text(f'ALTER TABLE "{staging_table}" RENAME TO "{table_name}"'))
 
-            apply_table_constraints(engine, table_name, relationships)
-            apply_table_indexes(engine, table_name)
+            loaded_tables.add(table_name)
 
             record_run(run_id, file, checksum, table_name, "success", total_rows=total_rows, processed_chunks=processed_chunks, inserted_rows=inserted_rows)
         except Exception:
             record_run(run_id, file, checksum, table_name, "failed", total_rows=total_rows, processed_chunks=processed_chunks, inserted_rows=inserted_rows)
             raise
+
+    for table_name in loaded_tables:
+        apply_table_constraints(engine, table_name, relationships)
+    for table_name in loaded_tables:
+        apply_table_indexes(engine, table_name)
 
     print("\nAll tables ingestion run completed.")
 
