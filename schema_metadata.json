@@ -16,6 +16,29 @@
     ]
   },
 
+  "database_layers": [
+    {
+      "schema": "bronze",
+      "layer_name": "Bronze / Immutable Raw",
+      "description": "Source-aligned Olist tables loaded with minimal cleaning plus ingestion metadata columns."
+    },
+    {
+      "schema": "raw",
+      "layer_name": "Raw Compatibility Views",
+      "description": "Compatibility views over bronze/public source tables with ingestion metadata columns hidden."
+    },
+    {
+      "schema": "silver",
+      "layer_name": "Silver / Standardized",
+      "description": "Typed, normalized, and quality-flagged relational tables built inside PostgreSQL from raw data."
+    },
+    {
+      "schema": "gold",
+      "layer_name": "Gold / AI Analytics Serving",
+      "description": "Wide denormalized serving facts plus secondary aggregate marts optimized for natural-language analytics."
+    }
+  ],
+
   "tables": [
 
     {
@@ -68,6 +91,12 @@
       ],
 
       "primary_key": "order_id",
+      "indexes": [
+        {
+          "columns": ["customer_id"],
+          "description": "Supports joins from orders to customers."
+        }
+      ],
 
       "columns": [
         {
@@ -121,6 +150,21 @@
         "price excludes shipping cost.",
         "freight_value represents shipping cost."
       ],
+      "primary_key": ["order_id", "order_item_id"],
+      "indexes": [
+        {
+          "columns": ["order_id"],
+          "description": "Supports joins from order items to orders."
+        },
+        {
+          "columns": ["product_id"],
+          "description": "Supports joins from order items to products."
+        },
+        {
+          "columns": ["seller_id"],
+          "description": "Supports joins from order items to sellers."
+        }
+      ],
 
       "columns": [
         {
@@ -168,6 +212,13 @@
       "business_rules": [
         "payment_value represents total transaction amount."
       ],
+      "primary_key": ["order_id", "payment_sequential"],
+      "indexes": [
+        {
+          "columns": ["order_id"],
+          "description": "Supports joins from payments to orders."
+        }
+      ],
 
       "columns": [
         {
@@ -205,11 +256,18 @@
       "business_rules": [
         "review_score ranges from 1 to 5."
       ],
+      "primary_key": ["review_id", "order_id"],
+      "indexes": [
+        {
+          "columns": ["order_id"],
+          "description": "Supports joins from reviews to orders."
+        }
+      ],
 
       "columns": [
         {
           "name": "review_id",
-          "description": "Unique review identifier.",
+          "description": "Review identifier; unique together with order_id.",
           "semantic_type": "identifier"
         },
         {
@@ -375,6 +433,7 @@
       "business_rules": [
         "Prefer English category names for business-facing outputs."
       ],
+      "primary_key": "product_category_name",
 
       "columns": [
         {
@@ -392,48 +451,434 @@
 
   ],
 
+  "semantic_tables": [
+    {
+      "name": "gold.order_item_facts",
+      "layer": "gold",
+      "description": "Primary LLM-friendly analytical serving table. It denormalizes order, item, customer, seller, product, payment, review, logistics, geography, and feature-engineered metrics.",
+      "grain": "One row per order item.",
+      "preferred_for": [
+        "Default table for business analytics questions",
+        "Text-to-SQL and LLM-powered analysis",
+        "Detailed revenue, delivery, customer, seller, product, payment, and geography analysis",
+        "Dashboard serving without repeated multi-table joins"
+      ],
+      "columns": [
+        {
+          "name": "order_id",
+          "description": "Order identifier.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "order_item_id",
+          "description": "Item sequence number inside an order.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "product_category_name",
+          "description": "Business-friendly product category, preferring English translation.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "customer_state",
+          "description": "Customer Brazilian state abbreviation.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "seller_state",
+          "description": "Seller Brazilian state abbreviation.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "purchase_month_start_date",
+          "description": "Month of order purchase.",
+          "semantic_type": "date"
+        },
+        {
+          "name": "order_item_revenue",
+          "description": "Item price excluding freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "order_item_shipping_cost",
+          "description": "Shipping cost for the item.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "total_order_item_cost",
+          "description": "Item price plus freight value.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "customer_satisfaction_score",
+          "description": "Average order review score attached to the item, named for business interpretation.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "delivery_distance_km",
+          "description": "Haversine distance between customer and seller ZIP prefix coordinates.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "delivery_efficiency_score",
+          "description": "Estimated delivery days divided by actual delivery days; higher values indicate faster-than-estimated delivery.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "customer_rfm_score",
+          "description": "Combined recency, frequency, and monetary score for customer behavior analysis.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "seller_revenue_rank",
+          "description": "Seller rank by total item revenue.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "product_return_risk_proxy",
+          "description": "Proxy risk based on low review score or late delivery.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "is_delivered_late",
+          "description": "Whether delivered date is later than estimated date.",
+          "semantic_type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "gold.monthly_revenue",
+      "layer": "gold",
+      "description": "Monthly revenue, order, customer, review, and late-delivery summary.",
+      "grain": "One row per purchase month.",
+      "preferred_for": [
+        "Monthly revenue trend",
+        "Growth analysis",
+        "KPI cards by month"
+      ],
+      "columns": [
+        {
+          "name": "purchase_month",
+          "description": "Month of order purchase.",
+          "semantic_type": "date"
+        },
+        {
+          "name": "total_orders",
+          "description": "Distinct order count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "unique_customers",
+          "description": "Distinct repeat-customer identity count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "total_revenue",
+          "description": "Sum of item prices excluding freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "total_order_item_cost",
+          "description": "Sum of item prices plus freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "customer_satisfaction_score",
+          "description": "Average review score.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+    {
+      "name": "gold.category_performance",
+      "layer": "gold",
+      "description": "Product category revenue and satisfaction summary.",
+      "grain": "One row per translated product category.",
+      "preferred_for": [
+        "Top product categories",
+        "Category revenue ranking",
+        "Category satisfaction comparison"
+      ],
+      "columns": [
+        {
+          "name": "product_category_name",
+          "description": "English translated product category when available.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "total_orders",
+          "description": "Distinct order count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "total_revenue",
+          "description": "Sum of item prices excluding freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "total_order_item_cost",
+          "description": "Sum of item prices plus freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "customer_satisfaction_score",
+          "description": "Average review score.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+    {
+      "name": "gold.state_performance",
+      "layer": "gold",
+      "description": "Customer state level revenue and delivery summary.",
+      "grain": "One row per customer state.",
+      "preferred_for": [
+        "State revenue ranking",
+        "Regional demand analysis",
+        "Late delivery by customer state"
+      ],
+      "columns": [
+        {
+          "name": "customer_state",
+          "description": "Customer Brazilian state abbreviation.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "total_orders",
+          "description": "Distinct order count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "unique_customers",
+          "description": "Distinct repeat-customer identity count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "total_revenue",
+          "description": "Sum of item prices excluding freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "late_delivery_rate",
+          "description": "Share of item rows attached to late deliveries.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+    {
+      "name": "gold.seller_performance",
+      "layer": "gold",
+      "description": "Seller-level revenue, volume, review, and delivery performance.",
+      "grain": "One row per seller.",
+      "preferred_for": [
+        "Seller ranking",
+        "Seller revenue analysis",
+        "Seller delivery and satisfaction comparison"
+      ],
+      "columns": [
+        {
+          "name": "seller_id",
+          "description": "Seller identifier. Avoid returning unless explicitly requested.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "seller_city",
+          "description": "Normalized seller city.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "seller_state",
+          "description": "Seller Brazilian state abbreviation.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "total_revenue",
+          "description": "Sum of item prices excluding freight.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "customer_satisfaction_score",
+          "description": "Average review score.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+    {
+      "name": "gold.payment_method_performance",
+      "layer": "gold",
+      "description": "Payment method usage and payment value summary.",
+      "grain": "One row per payment type.",
+      "preferred_for": [
+        "Payment method comparison",
+        "Average payment value",
+        "Installment behavior analysis"
+      ],
+      "columns": [
+        {
+          "name": "payment_type",
+          "description": "Customer payment method.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "total_orders",
+          "description": "Distinct order count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "payment_value",
+          "description": "Total payment value.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "avg_payment_value",
+          "description": "Average payment value.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "avg_installments",
+          "description": "Average number of installments.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+    {
+      "name": "gold.delivery_performance",
+      "layer": "gold",
+      "description": "Monthly delivery speed and lateness summary by customer state.",
+      "grain": "One row per purchase month and customer state.",
+      "preferred_for": [
+        "Delivery delay analysis",
+        "Average delivery time",
+        "Regional logistics comparison"
+      ],
+      "columns": [
+        {
+          "name": "purchase_month",
+          "description": "Month of order purchase.",
+          "semantic_type": "date"
+        },
+        {
+          "name": "customer_state",
+          "description": "Customer Brazilian state abbreviation.",
+          "semantic_type": "location"
+        },
+        {
+          "name": "total_orders",
+          "description": "Distinct order count.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "late_orders",
+          "description": "Number of late delivered orders.",
+          "semantic_type": "metric"
+        },
+        {
+          "name": "avg_delivery_days",
+          "description": "Average days from purchase to delivered customer date.",
+          "semantic_type": "metric"
+        }
+      ]
+    },
+    {
+      "name": "silver.data_quality_issues",
+      "layer": "silver",
+      "description": "Formalized validation findings derived from the preparation notebook.",
+      "grain": "One row per detected data quality issue.",
+      "preferred_for": [
+        "Data quality checks",
+        "Validation audit",
+        "Explaining records excluded or flagged before analytics"
+      ],
+      "columns": [
+        {
+          "name": "table_name",
+          "description": "Table where the issue was detected.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "issue_type",
+          "description": "Machine-readable issue name.",
+          "semantic_type": "categorical"
+        },
+        {
+          "name": "issue_key",
+          "description": "Relevant record key for the issue.",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "severity",
+          "description": "Issue severity.",
+          "semantic_type": "categorical"
+        }
+      ]
+    }
+  ],
+
   "relationships": [
     {
       "source": "orders.customer_id",
       "target": "customers.customer_id",
-      "relationship_type": "many_to_one"
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order belongs to one customer."
     },
+
     {
       "source": "order_items.order_id",
       "target": "orders.order_id",
-      "relationship_type": "many_to_one"
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order item belongs to one order."
     },
+
     {
       "source": "order_items.product_id",
       "target": "products.product_id",
-      "relationship_type": "many_to_one"
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order item references one product."
     },
+
     {
       "source": "order_items.seller_id",
       "target": "sellers.seller_id",
-      "relationship_type": "many_to_one"
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order item references one seller."
     },
+
     {
       "source": "order_payments.order_id",
       "target": "orders.order_id",
-      "relationship_type": "many_to_one"
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each payment belongs to one order."
     },
+
     {
       "source": "order_reviews.order_id",
       "target": "orders.order_id",
-      "relationship_type": "many_to_one"
-    },
-    {
-      "source": "products.product_category_name",
-      "target": "product_category_name_translation.product_category_name",
-      "relationship_type": "many_to_one"
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each review belongs to one order."
     }
   ],
 
   "global_business_rules": [
     "Try to find business-friendly aggregation levels for metrics.",
+    "For most analytical questions, prefer gold.order_item_facts because it is the primary AI analytics serving table.",
+    "Use gold aggregate marts only when the question directly asks for a pre-aggregated view such as monthly, category, seller, state, payment, or delivery performance.",
+    "Use silver tables for validation, data quality, or normalized warehouse questions.",
     "try to find names instead of IDs when possible.",
     "if there is names, return just the names instead of the IDs. except explicitly requested to return the IDs.",
+    "always return product category names instead of IDs, using the translation table when possible.",
+    "never return raw identifiers like product_id or seller_id unless explicitly requested.",
     "Prefer translated English category names when available.",
     "Use customer_unique_id for repeat customer analysis.",
     "Avoid returning raw identifiers unless explicitly requested.",

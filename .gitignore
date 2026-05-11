@@ -5,3 +5,15 @@
 *.csv
 
 *.pyc
+
+*.ipynb linguist-vendored
+*.sql linguist-detectable=true
+*.sql linguist-language=SQL
+
+**/_debug/*
+**/debug_failed/*
+
+.ipynb_checkpoints/
+__init__.py
+__pycache__/
+*.log

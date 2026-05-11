@@ -30,7 +30,7 @@ def get_settings() -> Settings:
     return Settings(
         openrouter_api_key=api_key,
         database_url=db_url,
-        llm_model=os.getenv("LLM_MODEL", "inclusionai/ring-2.6-1t:free"),
+        llm_model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b:free"),
         llm_timeout_s=int(os.getenv("LLM_TIMEOUT_S", "30")),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "2")),
         llm_temperature=float(os.getenv("LLM_TEMPERATURE", "0")),

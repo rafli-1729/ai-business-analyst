@@ -6,3 +6,5 @@ streamlit
 tqdm
 pandas
 kagglehub
+geopy
+fastapi

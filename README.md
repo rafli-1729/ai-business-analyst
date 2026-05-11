@@ -77,6 +77,52 @@ Efficient ingestion pipeline with:
 
 ---
 
+### Layered ELT Warehouse
+
+Database-native transformations are organized for AI-powered analytics:
+- `bronze`: immutable source-aligned tables with ingestion metadata
+- `raw`: compatibility views over source tables with ingestion metadata hidden
+- `silver`: normalized, typed, deduplicated, quality-flagged warehouse entities
+- `gold.order_item_facts`: wide denormalized serving table with feature-engineered business semantics
+- `gold.*_performance` marts: secondary aggregate tables derived from `gold.order_item_facts`
+
+Recommended flow:
+
+```bash
+python ingest.py
+python transform.py
+```
+
+By default, `python ingest.py` also runs the ELT layer builder after ingestion. Set `RUN_ELT_AFTER_INGEST=false` if you want to load raw data only and run `python transform.py` separately.
+
+The ELT runner executes SQL files in this order:
+- `sql/bronze`
+- `sql/silver`
+- `sql/gold`
+
+Runs are recorded in `ops.elt_runs`. Formal validation findings from the preparation notebook are materialized in `silver.data_quality_issues`.
+
+Project modules are split by responsibility:
+
+```text
+ingestion/              Bronze ingestion and source metadata
+warehouse/              ELT runner and schema bootstrap
+quality/                Quality issue readers and summaries
+feature_engineering/    Gold feature catalog
+orchestration/          End-to-end warehouse pipeline
+models/                 Pipeline config/result models
+utils/                  Shared SQL helpers
+sql/bronze/             Bronze compatibility SQL
+sql/silver/             Clean normalized warehouse SQL
+sql/gold/               AI serving fact table and aggregate marts
+```
+
+`gold.order_item_facts` is the default table for LLM/text-to-SQL analytics. It minimizes joins and exposes semantic columns such as `customer_satisfaction_score`, `total_order_item_cost`, `delivery_distance_km`, `customer_rfm_score`, `seller_revenue_rank`, and `product_return_risk_proxy`.
+
+See `docs/warehouse_architecture.md` for the detailed warehouse design, feature groups, orchestration strategy, and indexing strategy.
+
+---
+
 ### Natural Language to SQL
 
 Users can ask business questions such as:
@@ -85,6 +131,19 @@ Users can ask business questions such as:
 - "States with the highest number of orders"
 
 The LLM automatically generates PostgreSQL queries.
+
+---
+
+### Next.js UI
+
+The deployable web UI is built with Next.js App Router and is ready for Vercel.
+
+```bash
+npm install
+npm run dev
+```
+
+By default, the UI calls `/api/query`, which returns demo analytics data. Set `ANALYTICS_API_URL` in Vercel when you have a deployed backend endpoint that accepts `{ "question": "..." }` and returns `sql`, `summary`, `rows`, and `chartType`.
 
 ---
 
