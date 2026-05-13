@@ -2,15 +2,32 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schema_metadata.json"
+ROOT = Path(__file__).resolve().parent.parent
+SEMANTIC_CONTEXT_PATH = ROOT / "warehouse" / "semantic" / "semantic_context.md"
+TABLE_RELATIONS_PATH = ROOT / "warehouse" / "semantic" / "table_relations.json"
 
 def load_schema_metadata() -> Dict[str, Any]:
+    semantic_context = SEMANTIC_CONTEXT_PATH.read_text(encoding="utf-8")
 
-    with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with TABLE_RELATIONS_PATH.open("r", encoding="utf-8") as file:
+        relations = json.load(file)
+
+    return {
+        "schema_version": relations.get("schema_version", "v1"),
+        "semantic_context": semantic_context,
+        "relations": relations,
+    }
 
 
-def render_schema_for_prompt(metadata: Dict[str, Any]) -> str:
+def load_table_relations() -> Dict[str, Any]:
+    with TABLE_RELATIONS_PATH.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def render_schema_for_prompt(metadata: Dict[str, Any], question: str | None = None) -> str:
+    semantic_context = metadata.get("semantic_context")
+    if semantic_context:
+        return _select_relevant_semantic_context(semantic_context, question)
 
     sections = []
 
@@ -212,3 +229,50 @@ def render_schema_for_prompt(metadata: Dict[str, Any]) -> str:
         sections.append("\n".join(rule_lines))
 
     return "\n\n".join(sections)
+
+
+def _select_relevant_semantic_context(semantic_context: str, question: str | None) -> str:
+    if not question:
+        return semantic_context
+
+    normalized_question = question.lower()
+    always_include = [
+        "# ",
+        "Schema version:",
+        "Business domain:",
+        "## Main use cases",
+        "## Warehouse layers",
+        "## Recommended analytics tables",
+    ]
+    topic_keywords = {
+        "gold.order_item_facts": ["default", "revenue", "sales", "delivery", "customer", "seller", "product", "payment", "review"],
+        "gold.monthly_revenue": ["month", "monthly", "trend", "growth", "over time"],
+        "gold.category_performance": ["category", "product category", "top product", "revenue"],
+        "gold.state_performance": ["state", "geography", "location"],
+        "gold.seller_performance": ["seller"],
+        "gold.payment_method_performance": ["payment", "installment"],
+        "gold.delivery_performance": ["delivery", "late", "shipping"],
+        "silver.": ["quality", "clean", "validation", "audit"],
+        "raw": ["raw", "source", "ingestion"],
+        "bronze": ["raw", "source", "ingestion"],
+    }
+
+    blocks = semantic_context.split("\n### ")
+    header = blocks[0]
+    selected_blocks = [header]
+
+    for block in blocks[1:]:
+        block_text = "### " + block
+        lowered_block = block_text.lower()
+        include = any(marker.lower() in lowered_block for marker in always_include)
+
+        for marker, keywords in topic_keywords.items():
+            if marker.lower() in lowered_block and any(keyword in normalized_question for keyword in keywords):
+                include = True
+                break
+
+        if include:
+            selected_blocks.append(block_text)
+
+    compact_context = "\n\n".join(selected_blocks)
+    return compact_context if len(compact_context) < len(semantic_context) else semantic_context

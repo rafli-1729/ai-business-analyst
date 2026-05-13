@@ -1,0 +1,22 @@
+name: olist_ai_analytics
+version: "0.2.0"
+config-version: 2
+
+profile: olist_ai_analytics
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+models:
+  olist_ai_analytics:
+    staging:
+      +schema: silver
+      +materialized: view
+    intermediate:
+      +schema: silver
+      +materialized: view
+    marts:
+      +schema: gold
+      +materialized: table

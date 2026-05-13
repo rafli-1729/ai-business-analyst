@@ -114,7 +114,14 @@ def run_elt(config: EltConfig) -> dict:
     executed_files: list[str] = []
 
     _ensure_elt_run_table(engine, config.ops_schema)
-    _record_elt_run(engine, config.ops_schema, run_id, "running", executed_files, started_at)
+    _record_elt_run(
+        engine,
+        config.ops_schema,
+        run_id,
+        "running",
+        executed_files,
+        started_at
+    )
 
     try:
         for path in sql_files:
@@ -122,7 +129,14 @@ def run_elt(config: EltConfig) -> dict:
             print(f"Executing ELT SQL: {relative_path}")
             execute_sql_file(engine, path)
             executed_files.append(relative_path)
-            _record_elt_run(engine, config.ops_schema, run_id, "running", executed_files, started_at)
+            _record_elt_run(
+                engine,
+                config.ops_schema,
+                run_id,
+                "running",
+                executed_files,
+                started_at
+            )
 
         quality_issue_count = _count_quality_issues(engine)
         _record_elt_run(
@@ -143,5 +157,12 @@ def run_elt(config: EltConfig) -> dict:
         }
 
     except Exception:
-        _record_elt_run(engine, config.ops_schema, run_id, "failed", executed_files, started_at)
+        _record_elt_run(
+            engine,
+            config.ops_schema,
+            run_id,
+            "failed",
+            executed_files,
+            started_at
+        )
         raise

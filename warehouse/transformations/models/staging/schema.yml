@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    description: Source-aligned Olist tables loaded from CSV files.
+    tables:
+      - name: olist_orders_dataset
+      - name: olist_order_items_dataset
+      - name: olist_customers_dataset
+      - name: olist_products_dataset
+      - name: olist_sellers_dataset
+      - name: olist_order_payments_dataset
+      - name: olist_order_reviews_dataset
+
+models:
+  - name: stg_orders
+    description: Clean order records prepared for downstream silver and gold models.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique

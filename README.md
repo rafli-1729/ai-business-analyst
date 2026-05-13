@@ -1,337 +1,144 @@
-# Relational AI Analyst
+# AI Business Analyst
 
-An AI-powered business intelligence system that transforms natural language questions into analytical PostgreSQL queries using a relational business warehouse.
+An AI analytics workspace that turns natural-language business questions into safe analytical PostgreSQL queries over a Supabase warehouse.
 
-This project is designed as an intermediate AI engineering project focused on:
-- relational database analytics
-- semantic-aware SQL generation
-- AI orchestration
-- business intelligence workflows
-- agentic AI foundations
+The project started as a simple NLQ flow:
 
----
+```text
+user prompt -> OpenRouter SQL generation -> Supabase query -> result display
+```
 
-## Project Goals
+It is now evolving into a practical, startup-sized AI analytics platform:
 
-The main goal of this project is to simulate a realistic AI-powered analytics workflow used in modern business intelligence systems.
+```text
+User question
+  -> Next.js workspace
+  -> FastAPI backend
+  -> AI planning + semantic prompt
+  -> OpenRouter SQL generation
+  -> SQL safety validation
+  -> Supabase/Postgres execution
+  -> table, chart intent, summary, execution metadata
+```
 
-The system allows users to:
-1. Ingest relational business datasets into PostgreSQL (Supabase)
-2. Query relational data using natural language
-3. Generate analytical SQL automatically using LLMs
-4. Execute safe SQL queries
-5. Return business insights interactively
+## Goals
 
-This project focuses heavily on:
-- relational reasoning
-- schema understanding
-- semantic metadata engineering
-- AI-assisted analytics
-- system orchestration
-
----
+- Keep the system understandable for a data engineering internship evaluation.
+- Separate application, AI, warehouse, orchestration, and infrastructure concerns.
+- Use semantic metadata to improve NLQ-to-SQL reliability.
+- Keep SQL generation read-only and analytics-focused.
+- Use realistic tools without enterprise overengineering.
 
 ## Tech Stack
 
-### Database
-- Supabase PostgreSQL
+- Supabase/Postgres for warehouse execution
+- OpenRouter for LLM calls
+- FastAPI for backend API contracts
+- Next.js for the analytics workspace UI
+- Dagster for orchestration and asset lineage
+- dbt-core for warehouse transformation structure
+- pandas and SQLAlchemy for Python data access
 
-### LLM Provider
-- OpenRouter
+## Project Layout
 
-### Frontend
-- Streamlit
+```text
+apps/api/                FastAPI query API
+apps/ui/                 Next.js analytics workspace
+ai/                      prompts, planning, formatting, summaries
+warehouse/               ingestion, dbt transformations, semantic catalog, quality
+orchestration/           Python pipelines and Dagster assets
+infra/                   config, database, observability adapters
+services/                compatibility services used by current entry points
+docs/                    architecture, lineage, semantic layer notes
+sql/                     active SQL ELT files for bronze, silver, and gold
+```
 
-### Data Processing
-- pandas
-- SQLAlchemy
+## Warehouse Flow
 
-### Dataset
-- Olist Brazilian E-Commerce Dataset
+```text
+Raw Olist CSV files
+  -> bronze source-aligned tables
+  -> raw compatibility views
+  -> silver cleaned warehouse entities
+  -> gold analytics facts and marts
+  -> semantic catalog
+  -> AI query layer
+```
 
----
+`gold.order_item_facts` is the default serving table for NLQ analytics. Aggregate marts support common monthly, category, seller, state, payment, and delivery questions.
 
-## Current Features
+## Local Commands
 
-### Relational Data Warehouse
+Install Python dependencies:
 
-Multi-table business warehouse using:
-- customers
-- orders
-- order_items
-- order_payments
-- order_reviews
-- products
-- sellers
-- geolocation
+```bash
+pip install -r requirements.txt
+```
 
----
+Create `.env` from `.env.example`, then run the API:
 
-### Chunked Data Ingestion
+```bash
+uvicorn apps.api.main:app --reload
+```
 
-Efficient ingestion pipeline with:
-- chunked CSV loading
-- datetime conversion
-- tqdm progress tracking
-- scalable loading strategy
+Run the Next.js workspace:
 
----
+```bash
+cd apps/ui
+npm install
+npm run dev
+```
 
-### Layered ELT Warehouse
+For local development, keep the FastAPI backend running on port `8000`. The
+Next.js API proxy defaults to `http://localhost:8000`. Use
+`ANALYTICS_API_URL` only when the backend runs somewhere else. Set
+`ANALYTICS_DEMO_MODE=true` only when you intentionally want mock UI data.
+Set `DEBUG=true` to return and display timing breakdowns in the UI. Leave it
+false to hide timing diagnostics.
 
-Database-native transformations are organized for AI-powered analytics:
-- `bronze`: immutable source-aligned tables with ingestion metadata
-- `raw`: compatibility views over source tables with ingestion metadata hidden
-- `silver`: normalized, typed, deduplicated, quality-flagged warehouse entities
-- `gold.order_item_facts`: wide denormalized serving table with feature-engineered business semantics
-- `gold.*_performance` marts: secondary aggregate tables derived from `gold.order_item_facts`
-
-Recommended flow:
+Run ingestion and warehouse ELT:
 
 ```bash
 python ingest.py
 python transform.py
 ```
 
-By default, `python ingest.py` also runs the ELT layer builder after ingestion. Set `RUN_ELT_AFTER_INGEST=false` if you want to load raw data only and run `python transform.py` separately.
+## API Contract
 
-The ELT runner executes SQL files in this order:
-- `sql/bronze`
-- `sql/silver`
-- `sql/gold`
+```http
+POST /api/query
+Content-Type: application/json
 
-Runs are recorded in `ops.elt_runs`. Formal validation findings from the preparation notebook are materialized in `silver.data_quality_issues`.
-
-Project modules are split by responsibility:
-
-```text
-ingestion/              Bronze ingestion and source metadata
-warehouse/              ELT runner and schema bootstrap
-quality/                Quality issue readers and summaries
-feature_engineering/    Gold feature catalog
-orchestration/          End-to-end warehouse pipeline
-models/                 Pipeline config/result models
-utils/                  Shared SQL helpers
-sql/bronze/             Bronze compatibility SQL
-sql/silver/             Clean normalized warehouse SQL
-sql/gold/               AI serving fact table and aggregate marts
+{ "question": "Which states generate the highest revenue?" }
 ```
 
-`gold.order_item_facts` is the default table for LLM/text-to-SQL analytics. It minimizes joins and exposes semantic columns such as `customer_satisfaction_score`, `total_order_item_cost`, `delivery_distance_km`, `customer_rfm_score`, `seller_revenue_rank`, and `product_return_risk_proxy`.
+The response includes:
 
-See `docs/warehouse_architecture.md` for the detailed warehouse design, feature groups, orchestration strategy, and indexing strategy.
-
----
-
-### Natural Language to SQL
-
-Users can ask business questions such as:
-- "Top product categories by revenue"
-- "Monthly revenue growth trend"
-- "States with the highest number of orders"
-
-The LLM automatically generates PostgreSQL queries.
-
----
-
-### Next.js UI
-
-The deployable web UI is built with Next.js App Router and is ready for Vercel.
-
-```bash
-npm install
-npm run dev
-```
-
-By default, the UI calls `/api/query`, which returns demo analytics data. Set `ANALYTICS_API_URL` in Vercel when you have a deployed backend endpoint that accepts `{ "question": "..." }` and returns `sql`, `summary`, `rows`, and `chartType`.
-
----
-
-### Semantic Schema Layer
-
-The system uses a business-aware semantic schema containing:
-- table descriptions
-- column descriptions
-- relationship metadata
-- business rules
-- analytical guidance
-
-This improves:
-- SQL generation quality
-- business understanding
-- semantic reasoning
-- aggregation behavior
-
----
-
-### Relational Query Reasoning
-
-The AI system supports:
-- multi-table JOIN generation
-- aggregation queries
-- trend analysis
-- ranking queries
-- analytical KPI generation
-
----
-
-### SQL Safety Guard
-
-The system blocks dangerous SQL execution such as:
-- DROP
-- DELETE
-- UPDATE
-- ALTER
-- TRUNCATE
-- INSERT
-- CREATE
-
-Only analytical SELECT queries are allowed.
-
----
-
-## Planned V2 Improvements
-
-### 1. LLM Validation & Retry Loop
-
-Implement automatic SQL repair when:
-- query execution fails
-- query returns empty results
-- datatype mismatch occurs
-
----
-
-### 2. AI Summary Layer
-
-Generate executive-style business summaries from query results.
-
-Example:
-
-> "Health & Beauty products generated the highest revenue during the selected period."
-
----
-
-### 3. Automatic Visualization Layer
-
-Generate charts dynamically based on query output.
-
-Planned visualizations:
-- line charts
-- bar charts
-- KPI cards
-- trend analysis
-
----
-
-### 4. Query Observability
-
-Track:
 - generated SQL
+- business summary
+- result rows
+- chart type hint
+- row count
 - execution time
-- query failures
-- retry attempts
+- schema version
+- debug timing breakdown when `DEBUG=true`
 
----
+## Current Capabilities
 
-### 5. Database Optimization
+- Bronze ingestion from Olist CSV files into Supabase/Postgres
+- SQL ELT for bronze compatibility views, silver warehouse tables, and gold marts
+- Semantic metadata rendering for LLM prompts
+- OpenRouter SQL generation
+- Read-only SQL safety guard
+- In-memory SQL cache
+- FastAPI query endpoint
+- Next.js analytics workspace shell
+- Dagster asset definitions for coarse warehouse lineage
+- dbt project scaffold for incremental migration from SQL scripts to dbt models
 
-Planned improvements:
-- PostgreSQL COPY ingestion
-- automatic index creation
-- automatic foreign key creation
+## Documentation
 
----
-
-### 6. Semantic Metadata Expansion
-
-Improve business-aware reasoning using:
-- metric definitions
-- semantic aliases
-- aggregation preferences
-- ontology-style metadata
-
----
-
-### 7. Modular Architecture Refactor
-
-Planned structure:
-
-project/
-│
-├── app.py
-├── ingest.py
-├── schema.py
-├── prompts.py
-├── validator.py
-│
-├── utils/
-│   ├── db.py
-│   ├── llm.py
-│   └── visualization.py
-
----
-
-### 8. Better Prompt Engineering
-
-Improve:
-- semantic query understanding
-- aggregation granularity
-- business-friendly outputs
-- human-readable query generation
-
----
-
-### 9. Conversational Analytics
-
-Enable contextual follow-up questions such as:
-- "What about only in 2018?"
-- "Compare it with the previous year."
-
----
-
-### 10. Performance Improvements
-
-Future optimizations:
-- caching
-- query optimization
-- asynchronous execution
-- better ingestion throughput
-
----
-
-## Example Workflow
-
-User Question
-↓
-LLM SQL Generation
-↓
-SQL Safety Validation
-↓
-PostgreSQL Query Execution
-↓
-Result Visualization
-↓
-AI Business Summary
-
----
-
-## Example Questions
-
-- Which states generate the highest revenue?
-- What are the top product categories by sales?
-- Monthly revenue growth trend
-- Which payment methods have the highest average transaction value?
-- Which categories have the best customer review scores?
-
----
-
-## Learning Objectives
-
-This project is intended to explore:
-- relational database engineering
-- AI-assisted analytics
-- semantic metadata systems
-- LLM orchestration
-- NLQ-to-SQL systems
-- business intelligence workflows
-- agentic AI foundations
+- `docs/architecture.md`
+- `docs/warehouse_architecture.md`
+- `docs/semantic_layer.md`
+- `docs/lineage.md`

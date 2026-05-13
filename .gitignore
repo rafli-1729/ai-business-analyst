@@ -17,3 +17,10 @@
 __init__.py
 __pycache__/
 *.log
+.tmp_*/
+node_modules/
+.next/
+apps/ui/node_modules/
+apps/ui/.next/
+
+.agents/

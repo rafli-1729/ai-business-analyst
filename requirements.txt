@@ -2,9 +2,13 @@ sqlalchemy
 psycopg2-binary
 python-dotenv
 openai
-streamlit
 tqdm
 pandas
 kagglehub
 geopy
 fastapi
+uvicorn
+dagster
+dagster-webserver
+dbt-core
+dbt-postgres

@@ -1,0 +1,296 @@
+{
+  "schema_version": "2026-05-10",
+  "tables": [
+    {
+      "name": "customers",
+      "layer": null,
+      "primary_key": "customer_id",
+      "indexes": [],
+      "columns": [
+        {
+          "name": "customer_id",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "customer_unique_id",
+          "semantic_type": "business_identifier"
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "layer": null,
+      "primary_key": "order_id",
+      "indexes": [
+        {
+          "columns": [
+            "customer_id"
+          ],
+          "description": "Supports joins from orders to customers."
+        }
+      ],
+      "columns": [
+        {
+          "name": "order_id",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "customer_id",
+          "semantic_type": "foreign_key"
+        }
+      ]
+    },
+    {
+      "name": "order_items",
+      "layer": null,
+      "primary_key": [
+        "order_id",
+        "order_item_id"
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "order_id"
+          ],
+          "description": "Supports joins from order items to orders."
+        },
+        {
+          "columns": [
+            "product_id"
+          ],
+          "description": "Supports joins from order items to products."
+        },
+        {
+          "columns": [
+            "seller_id"
+          ],
+          "description": "Supports joins from order items to sellers."
+        }
+      ],
+      "columns": [
+        {
+          "name": "order_id",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "order_item_id",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "product_id",
+          "semantic_type": "foreign_key"
+        },
+        {
+          "name": "seller_id",
+          "semantic_type": "foreign_key"
+        }
+      ]
+    },
+    {
+      "name": "order_payments",
+      "layer": null,
+      "primary_key": [
+        "order_id",
+        "payment_sequential"
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "order_id"
+          ],
+          "description": "Supports joins from payments to orders."
+        }
+      ],
+      "columns": [
+        {
+          "name": "order_id",
+          "semantic_type": "foreign_key"
+        }
+      ]
+    },
+    {
+      "name": "order_reviews",
+      "layer": null,
+      "primary_key": [
+        "review_id",
+        "order_id"
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "order_id"
+          ],
+          "description": "Supports joins from reviews to orders."
+        }
+      ],
+      "columns": [
+        {
+          "name": "review_id",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "order_id",
+          "semantic_type": "foreign_key"
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "layer": null,
+      "primary_key": "product_id",
+      "indexes": [],
+      "columns": [
+        {
+          "name": "product_id",
+          "semantic_type": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "sellers",
+      "layer": null,
+      "primary_key": "seller_id",
+      "indexes": [],
+      "columns": [
+        {
+          "name": "seller_id",
+          "semantic_type": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "geolocation",
+      "layer": null,
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "product_category_name_translation",
+      "layer": null,
+      "primary_key": "product_category_name",
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "gold.order_item_facts",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": [
+        {
+          "name": "order_id",
+          "semantic_type": "identifier"
+        },
+        {
+          "name": "order_item_id",
+          "semantic_type": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "gold.monthly_revenue",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "gold.category_performance",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "gold.state_performance",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "gold.seller_performance",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": [
+        {
+          "name": "seller_id",
+          "semantic_type": "identifier"
+        }
+      ]
+    },
+    {
+      "name": "gold.payment_method_performance",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "gold.delivery_performance",
+      "layer": "gold",
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    },
+    {
+      "name": "silver.data_quality_issues",
+      "layer": "silver",
+      "primary_key": null,
+      "indexes": [],
+      "columns": []
+    }
+  ],
+  "relationships": [
+    {
+      "source": "orders.customer_id",
+      "target": "customers.customer_id",
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order belongs to one customer."
+    },
+    {
+      "source": "order_items.order_id",
+      "target": "orders.order_id",
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order item belongs to one order."
+    },
+    {
+      "source": "order_items.product_id",
+      "target": "products.product_id",
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order item references one product."
+    },
+    {
+      "source": "order_items.seller_id",
+      "target": "sellers.seller_id",
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each order item references one seller."
+    },
+    {
+      "source": "order_payments.order_id",
+      "target": "orders.order_id",
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each payment belongs to one order."
+    },
+    {
+      "source": "order_reviews.order_id",
+      "target": "orders.order_id",
+      "relationship_type": "many_to_one",
+      "constraint_type": "foreign_key",
+      "enforce": true,
+      "description": "Each review belongs to one order."
+    }
+  ]
+}
