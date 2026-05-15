@@ -4,14 +4,14 @@ from ai.services.sql_guard import SqlValidationError, validate_sql_is_read_only
 
 
 def test_validate_sql_allows_single_select_statement():
-    sql = validate_sql_is_read_only("select * from gold.order_item_facts limit 10;")
+    sql = validate_sql_is_read_only("select * from gold.sales_summary limit 10;")
 
-    assert sql == "select * from gold.order_item_facts limit 10"
+    assert sql == "select * from gold.sales_summary limit 10"
 
 
 def test_validate_sql_blocks_mutating_statements():
     with pytest.raises(SqlValidationError):
-        validate_sql_is_read_only("delete from gold.order_item_facts")
+        validate_sql_is_read_only("delete from gold.sales_summary")
 
 
 def test_validate_sql_blocks_multiple_statements():

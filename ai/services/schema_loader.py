@@ -245,8 +245,7 @@ def _select_relevant_semantic_context(semantic_context: str, question: str | Non
         "## Recommended analytics tables",
     ]
     topic_keywords = {
-        "gold.order_item_facts": ["default", "revenue", "sales", "delivery", "customer", "seller", "product", "payment", "review"],
-        "gold.monthly_revenue": ["month", "monthly", "trend", "growth", "over time"],
+        "gold.sales_summary": ["month", "monthly", "trend", "growth", "over time"],
         "gold.category_performance": ["category", "product category", "top product", "revenue"],
         "gold.state_performance": ["state", "geography", "location"],
         "gold.seller_performance": ["seller"],

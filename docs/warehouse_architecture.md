@@ -71,7 +71,7 @@ Feature groups:
 
 Aggregate marts are secondary and derive only from `gold.order_item_facts`:
 
-- `gold.monthly_revenue`
+- `gold.sales_summary`
 - `gold.category_performance`
 - `gold.state_performance`
 - `gold.seller_performance`

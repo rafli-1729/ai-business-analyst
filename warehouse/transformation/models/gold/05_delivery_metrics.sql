@@ -1,12 +1,15 @@
+-- =========================================================
+-- gold/05_delivery_metrics.sql
+-- =========================================================
+
 DROP TABLE IF EXISTS gold.delivery_metrics CASCADE;
 
 CREATE TABLE gold.delivery_metrics AS
 
 SELECT
-    DATE_TRUNC(
-        'month',
+    DATE(
         order_purchase_timestamp
-    ) AS month,
+    ) AS purchase_date,
 
     AVG(
         EXTRACT(
@@ -16,17 +19,7 @@ SELECT
                 order_purchase_timestamp
             )
         )
-    ) AS avg_delivery_days,
-
-    AVG(
-        EXTRACT(
-            DAY FROM (
-                order_estimated_delivery_date
-                -
-                order_delivered_customer_date
-            )
-        )
-    ) AS avg_estimated_gap_days,
+    ) AS average_delivery_days,
 
     AVG(
         CASE
@@ -43,8 +36,5 @@ WHERE order_status = 'delivered'
 
 GROUP BY 1;
 
-CREATE INDEX idx_gold_delivery_metrics_month
-ON gold.delivery_metrics(month);
-
 COMMENT ON TABLE gold.delivery_metrics IS
-'Monthly delivery and logistics performance mart.';
+'Daily delivery efficiency and logistics mart.';

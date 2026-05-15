@@ -11,7 +11,7 @@ class Settings:
     database_url: str
     debug: bool = False
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    llm_model: str = "inclusionai/ring-2.6-1t:free"
+    llm_model: str = "openai/gpt-oss-20b:free"
     llm_timeout_s: int = 30
     llm_max_retries: int = 2
     llm_temperature: float = 0.0

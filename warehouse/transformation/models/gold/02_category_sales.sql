@@ -1,25 +1,32 @@
+-- =========================================================
+-- gold/02_category_sales.sql
+-- =========================================================
+
 DROP TABLE IF EXISTS gold.category_sales CASCADE;
 
 CREATE TABLE gold.category_sales AS
 
 SELECT
-    DATE_TRUNC(
-        'month',
+    DATE(
         o.order_purchase_timestamp
-    ) AS month,
+    ) AS purchase_date,
 
     COALESCE(
         pct.product_category_name_english,
         p.product_category_name
     ) AS product_category,
 
-    SUM(op.payment_value) AS revenue,
+    SUM(op.payment_value)
+        AS total_revenue,
 
-    COUNT(DISTINCT o.order_id) AS total_orders,
+    COUNT(DISTINCT o.order_id)
+        AS total_orders,
 
-    COUNT(*) AS total_items,
+    COUNT(*)
+        AS total_items,
 
-    AVG(orv.review_score) AS avg_review_score
+    AVG(orv.review_score)
+        AS average_review_score
 
 FROM silver.orders AS o
 
@@ -43,11 +50,11 @@ WHERE o.order_status != 'canceled'
 
 GROUP BY 1, 2;
 
-CREATE INDEX idx_gold_category_sales_month
-ON gold.category_sales(month);
+CREATE INDEX idx_category_sales_date
+ON gold.category_sales(purchase_date);
 
-CREATE INDEX idx_gold_category_sales_category
+CREATE INDEX idx_category_sales_category
 ON gold.category_sales(product_category);
 
 COMMENT ON TABLE gold.category_sales IS
-'Monthly category-level sales performance mart.';
+'Daily product category sales performance mart.';

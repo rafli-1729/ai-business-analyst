@@ -7,7 +7,7 @@ def validate_sales_summary_non_negative(engine):
         """
         SELECT COUNT(*)
         FROM gold.sales_summary
-        WHERE revenue < 0
+        WHERE total_revenue < 0
         """
     )
 

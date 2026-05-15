@@ -9,7 +9,7 @@ def test_semantic_planner_selects_monthly_table_for_trend_question():
     )
 
     assert plan.intent == "trend"
-    assert plan.candidate_tables[0].name == "gold.monthly_revenue"
+    assert plan.candidate_tables[0].name == "gold.sales_summary"
 
 
 def test_semantic_planner_uses_semantic_columns_for_hints():

@@ -5,12 +5,22 @@ from infra.observability.logger import log_event
 
 
 class LlmClient:
-    def __init__(self, base_url: str, api_key: str, model: str, timeout_s: int = 30, max_retries: int = 2, temperature: float = 0, max_tokens: int | None = None):
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        model: str,
+        timeout_s: int = 30,
+        max_retries: int = 2,
+        temperature: float = 0,
+        max_tokens: int | None = None
+    ):
         self.client = OpenAI(base_url=base_url, api_key=api_key, timeout=timeout_s)
         self.model = model
         self.max_retries = max_retries
         self.temperature = temperature
         self.max_tokens = max_tokens
+
 
     def invoke(self, prompt: str, request_id: str = "summary", max_tokens: int | None = None) -> str:
         last_error = None
@@ -56,9 +66,12 @@ class LlmClient:
                     request_id=request_id,
                     attempt=attempt,
                     error=str(e),
+                    error_type=type(e).__name__,
                 )
 
-                time.sleep(min(2 ** attempt, 8))
+                print(repr(e))
+
+                time.sleep(min(2 ** attempt, 4))
 
         raise RuntimeError(f"LLM invoke failed after retries: {last_error}")
 

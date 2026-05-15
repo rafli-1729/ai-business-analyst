@@ -1,3 +1,7 @@
+-- =========================================================
+-- gold/04_seller_performance.sql
+-- =========================================================
+
 DROP TABLE IF EXISTS gold.seller_performance CASCADE;
 
 CREATE TABLE gold.seller_performance AS
@@ -14,7 +18,7 @@ SELECT
         AS total_revenue,
 
     AVG(orv.review_score)
-        AS avg_review_score,
+        AS average_review_score,
 
     AVG(
         EXTRACT(
@@ -24,7 +28,7 @@ SELECT
                 o.order_purchase_timestamp
             )
         )
-    ) AS avg_delivery_days
+    ) AS average_delivery_days
 
 FROM silver.sellers AS s
 
@@ -44,8 +48,5 @@ WHERE o.order_status != 'canceled'
 
 GROUP BY 1, 2;
 
-CREATE INDEX idx_gold_seller_performance_seller
-ON gold.seller_performance(seller_id);
-
 COMMENT ON TABLE gold.seller_performance IS
-'Seller-level business performance mart.';
+'Seller-level sales and operational performance mart.';
