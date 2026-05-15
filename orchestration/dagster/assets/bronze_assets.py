@@ -2,20 +2,19 @@ import os
 
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
 
-from models.warehouse import IngestionConfig
-from orchestration.warehouse_pipeline import run_ingestion_pipeline
+from warehouse.ingestion.config import IngestionConfig
+from orchestration.pipelines.ingestion_pipeline import run_ingestion_pipeline
 
 
 @asset(group_name="bronze", compute_kind="python")
 def bronze_olist_sources(context: AssetExecutionContext) -> MaterializeResult:
-    database_url = os.getenv("DATABASE_URL", "").strip()
+    database_url = os.getenv("INGESTER_DB_URL", "").strip()
     if not database_url:
-        raise ValueError("Missing DATABASE_URL")
+        raise ValueError("Missing INGESTER_DB_URL")
 
     results = run_ingestion_pipeline(
         IngestionConfig(
             database_url=database_url,
-            run_elt_after_ingest=False,
         )
     )
 

@@ -1,4 +1,4 @@
-from services.response_cache import ResponseCache
+from ai.services.response_cache import ResponseCache
 
 
 def test_response_cache_uses_response_version_in_key():

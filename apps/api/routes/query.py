@@ -7,10 +7,10 @@ from apps.api.schemas.request import QueryRequest
 from apps.api.schemas.response import QueryResponse
 from ai.services.result_formatter import dataframe_to_rows, infer_chart_type
 from ai.summarization.narrative import summarize_query_result, summary_prompt_fingerprint
-from services.observability import log_event
-from services.query_service import QueryService
-from services.response_cache import ResponseCache
-from services.sql_guard import SqlValidationError
+from infra.observability.logger import log_event
+from ai.services.query_service import QueryService
+from ai.services.response_cache import ResponseCache
+from ai.services.sql_guard import SqlValidationError
 
 
 router = APIRouter(tags=["query"])

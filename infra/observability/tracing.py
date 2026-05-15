@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from services.observability import timed
+from infra.observability.logger import timed
 
 
 @contextmanager

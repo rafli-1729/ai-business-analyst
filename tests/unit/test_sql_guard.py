@@ -1,6 +1,6 @@
 import pytest
 
-from services.sql_guard import SqlValidationError, validate_sql_is_read_only
+from ai.services.sql_guard import SqlValidationError, validate_sql_is_read_only
 
 
 def test_validate_sql_allows_single_select_statement():

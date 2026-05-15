@@ -1,4 +1,4 @@
-from services.observability import log_event
+from infra.observability.logger import log_event
 
 
 def record_counter(name: str, value: int = 1, **labels) -> None:

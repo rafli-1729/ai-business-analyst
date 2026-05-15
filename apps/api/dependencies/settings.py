@@ -1,8 +1,8 @@
 from functools import lru_cache
 
-from services.config import get_settings
-from services.query_service import QueryService
-from services.response_cache import ResponseCache
+from infra.config.settings import get_settings
+from ai.services.query_service import QueryService
+from ai.services.response_cache import ResponseCache
 
 
 @lru_cache(maxsize=1)

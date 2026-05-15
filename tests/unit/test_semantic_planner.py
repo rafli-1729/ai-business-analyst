@@ -1,4 +1,4 @@
-from services.schema_loader import load_schema_metadata
+from ai.services.schema_loader import load_schema_metadata
 from ai.planners.semantic_planner import build_query_plan
 
 
