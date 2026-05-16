@@ -1,4 +1,5 @@
-const API_URL = "https://ai-business-analyst-sand.vercel.app/"
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL;
 
 export async function askQuestion(
   question: string
