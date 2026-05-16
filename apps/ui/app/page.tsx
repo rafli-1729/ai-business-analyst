@@ -13,10 +13,6 @@ const starterQuestions = [
   "Which states have the best average review score?",
 ];
 
-console.log(
-  process.env.NEXT_PUBLIC_API_URL
-);
-
 function elapsedMs(startedAt: number) {
   return Math.round(performance.now() - startedAt);
 }
