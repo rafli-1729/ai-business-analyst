@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import Response
 from fastapi.middleware.cors import CORSMiddleware
 from apps.api.routes.query import router as query_router
 
@@ -11,11 +12,18 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://ai-business-analyst-k5bx.vercel.app/",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    return Response()
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
