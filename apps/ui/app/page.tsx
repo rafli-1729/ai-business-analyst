@@ -6,11 +6,16 @@ import { QueryResultTable } from "../components/query-result-table";
 import { SqlPanel } from "../components/sql-panel";
 import { QueryResponse } from "../types/query";
 import { askQuestion } from "../lib/api";
+
 const starterQuestions = [
   "Which product categories generate the highest revenue?",
   "Show monthly revenue growth",
   "Which states have the best average review score?",
 ];
+
+console.log(
+  process.env.NEXT_PUBLIC_API_URL
+);
 
 function elapsedMs(startedAt: number) {
   return Math.round(performance.now() - startedAt);
