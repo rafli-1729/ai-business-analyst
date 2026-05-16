@@ -120,12 +120,6 @@ export default function AnalyticsWorkspace() {
         browser_total_to_payload_ms: Math.round(payloadParsedAt - submitStartedAt),
       });
 
-      if (!result.ok) {
-        throw new Error(
-          payload.detail ?? "The analytics API could not answer that question."
-        );
-      }
-
       setResponse(payload);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unexpected error");
