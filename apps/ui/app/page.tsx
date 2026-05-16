@@ -101,11 +101,21 @@ export default function AnalyticsWorkspace() {
 
     try {
       const fetchStartedAt = performance.now();
-      const result = await fetch("/api/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, refresh: true }),
-      });
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL;
+      const result = await fetch(
+        `${API_URL}/api/query`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question,
+            refresh: true,
+          }),
+        }
+      );
       const responseReceivedAt = performance.now();
 
       const parseStartedAt = performance.now();
