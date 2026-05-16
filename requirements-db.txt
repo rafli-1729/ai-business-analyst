@@ -1,0 +1,14 @@
+sqlalchemy
+psycopg2-binary
+python-dotenv
+openai
+tqdm
+pandas
+kagglehub
+geopy
+fastapi
+uvicorn
+dagster
+dagster-webserver
+dbt-core
+dbt-postgres
