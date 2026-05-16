@@ -16,7 +16,7 @@ from ai.services.schema_loader import (
     load_schema_metadata,
     render_schema_for_prompt,
 )
-from ai.services.sql_cache import SqlCache
+from ai.caches.sql_cache import SqlCache
 from ai.services.sql_guard import (
     SqlValidationError,
     validate_sql_is_read_only,

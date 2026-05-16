@@ -5,7 +5,7 @@ from fastapi import (
 )
 
 from apps.api.dependencies.settings import (
-    get_query_service,
+    get_orchestrator,
     get_response_cache,
 )
 
@@ -17,15 +17,15 @@ from apps.api.schemas.response import (
     QueryResponse,
 )
 
-from ai.orchestration.analytical_flow import (
+from ai.orchestrators.analytical_flow import (
     run_analytical_flow,
 )
 
-from ai.services.query_service import (
-    QueryService,
+from ai.orchestrators.analytical_orchestrator import (
+    AnalyticalOrchestrator,
 )
 
-from ai.services.response_cache import (
+from ai.caches.response_cache import (
     ResponseCache,
 )
 
@@ -46,20 +46,28 @@ router = APIRouter(tags=["query"])
 )
 def run_query(
     payload: QueryRequest,
-    service: QueryService = Depends(
-        get_query_service
+    orchestrator: AnalyticalOrchestrator = Depends(
+        get_orchestrator
     ),
     response_cache: ResponseCache = Depends(
         get_response_cache
     ),
 ):
+    """
+    Execute an analytical query.
+
+    Orchestrates query planning, multi-step reasoning if needed,
+    SQL generation, validation, execution, and summarization.
+    """
 
     try:
-
+        # Run analytical flow with planning and potential multi-step reasoning
         result = run_analytical_flow(
-            payload=payload,
-            service=service,
+            question=payload.question,
+            orchestrator=orchestrator,
             response_cache=response_cache,
+            row_limit=payload.row_limit,
+            refresh=payload.refresh,
         )
 
         return QueryResponse(**result)

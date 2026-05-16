@@ -9,9 +9,9 @@ load_dotenv()
 class Settings:
     openrouter_api_key: str
     database_url: str
+    llm_model: str
     debug: bool = False
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    llm_model: str = "openai/gpt-oss-20b:free"
     llm_timeout_s: int = 30
     llm_max_retries: int = 2
     llm_temperature: float = 0.0
@@ -36,7 +36,7 @@ def get_settings() -> Settings:
         database_url=db_url,
         debug=_read_bool("DEBUG", default=False),
         openrouter_base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
-        llm_model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b:free"),
+        llm_model=os.getenv("LLM_MODEL", ""),
         llm_timeout_s=int(os.getenv("LLM_TIMEOUT_S", "30")),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "2")),
         llm_temperature=float(os.getenv("LLM_TEMPERATURE", "0")),
