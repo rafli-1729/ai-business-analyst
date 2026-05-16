@@ -110,7 +110,7 @@ export default function AnalyticsWorkspace() {
       const responseReceivedAt = performance.now();
 
       const parseStartedAt = performance.now();
-      const payload = await result.json();
+      const payload = result;
       const payloadParsedAt = performance.now();
 
       setClientTimings({
