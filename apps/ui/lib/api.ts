@@ -1,5 +1,4 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL;
+const API_URL = "https://ai-business-analyst-sand.vercel.app";
 
 export async function askQuestion(
   question: string
@@ -16,6 +15,8 @@ export async function askQuestion(
       }),
     }
   );
+
+  console.log("API response:", response);
 
   if (!response.ok) {
     throw new Error(
