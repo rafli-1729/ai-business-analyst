@@ -5,7 +5,7 @@ import { MarkdownSummary } from "../components/markdown-summary";
 import { QueryResultTable } from "../components/query-result-table";
 import { SqlPanel } from "../components/sql-panel";
 import { QueryResponse } from "../types/query";
-
+import { askQuestion } from "../lib/api";
 const starterQuestions = [
   "Which product categories generate the highest revenue?",
   "Show monthly revenue growth",
@@ -101,21 +101,7 @@ export default function AnalyticsWorkspace() {
 
     try {
       const fetchStartedAt = performance.now();
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL;
-      const result = await fetch(
-        `${API_URL}/api/query`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            question,
-            refresh: true,
-          }),
-        }
-      );
+      const result = await askQuestion(question);
       const responseReceivedAt = performance.now();
 
       const parseStartedAt = performance.now();
