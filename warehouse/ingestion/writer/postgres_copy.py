@@ -26,7 +26,6 @@ def copy_chunk_to_postgres(
 
     try:
         with raw_conn.cursor() as cursor:
-
             buffer = io.StringIO()
 
             df.to_csv(
@@ -59,7 +58,7 @@ def copy_chunk_to_postgres(
                 copy_stmt.as_string(cursor),
                 buffer,
             )
-
+            
         raw_conn.commit()
 
     except Exception:

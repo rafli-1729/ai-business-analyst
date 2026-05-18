@@ -1,39 +1,25 @@
-import json
 import logging
+import sys
 import time
-import uuid
-from contextlib import contextmanager
 
+def setup_logging():
+    """Configures a standardized logger."""
+    log_formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    root_logger = logging.getLogger()
 
-def setup_logger() -> logging.Logger:
-    logger = logging.getLogger("ai_business_analyst")
-    if logger.handlers:
-        return logger
+    # Clear existing handlers
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
 
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    logger.addHandler(handler)
-    return logger
+    # Setup console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(log_formatter)
+    root_logger.addHandler(console_handler)
 
+    root_logger.setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-logger = setup_logger()
-
-
-def new_request_id() -> str:
-    return str(uuid.uuid4())
-
-
-def log_event(event: str, **kwargs) -> None:
-    payload = {"event": event, "ts": int(time.time() * 1000), **kwargs}
-    logger.info(json.dumps(payload, default=str))
-
-
-@contextmanager
-def timed(event: str, **kwargs):
-    start = time.perf_counter()
-    try:
-        yield
-    finally:
-        elapsed_ms = int((time.perf_counter() - start) * 1000)
-        log_event(event, elapsed_ms=elapsed_ms, **kwargs)
+    return root_logger

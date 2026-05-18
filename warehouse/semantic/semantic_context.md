@@ -1,291 +1,82 @@
-# Olist Brazilian E-Commerce Warehouse
+# Olist Brazilian E-Commerce Warehouse (Wide Marts Edition)
 
-Schema version: v2
+Schema version: v3
 
 ---
 
-## gold.sales_summary
+## gold.fact_sales_items
 
 Description:
-Daily business sales performance summary mart.
+Ultimate wide table for sales and product analysis. Contains one row per item sold in every order. This is the primary table for revenue, product ranking, and geographic trends.
 
 Layer:
 gold
 
 Grain:
-One row per purchase_date.
+One row per order_item_key (Order ID + Item ID).
 
 Primary dimensions:
-- purchase_date
-
-Primary metrics:
-- total_revenue
-- total_orders
-- total_customers
-- total_items
-- average_order_value
-- average_freight_value
-
-Preferred for:
-- trend_analysis
-- executive_summary
-- growth_analysis
-
-Columns:
-- purchase_date: Purchase date at daily grain. Format: YYYY-MM-DD. Semantic type: date.
-- total_revenue: Total successful payment revenue. Unit: BRL. Semantic type: metric.
-- total_orders: Total distinct orders. Semantic type: metric.
-- total_customers: Total unique customers. Semantic type: metric.
-- total_items: Total items sold. Semantic type: metric.
-- average_order_value: Average payment value per order. Unit: BRL. Semantic type: metric.
-- average_freight_value: Average freight cost per item. Unit: BRL. Semantic type: metric.
-
----
-
-## gold.category_sales
-
-Description:
-Daily category-level sales performance mart.
-
-Layer:
-gold
-
-Grain:
-One row per purchase_date and product_category.
-
-Primary dimensions:
-- purchase_date
-- product_category
-
-Primary metrics:
-- total_revenue
-- total_orders
-- total_items
-- average_review_score
-
-Preferred for:
-- ranking_analysis
-- category_analysis
-- product_performance
-
-Columns:
-- purchase_date: Purchase date. Format: YYYY-MM-DD. Semantic type: date.
-- product_category: English-translated product category. Semantic type: dimension.
-- total_revenue: Total revenue. Unit: BRL. Semantic type: metric.
-- total_orders: Total distinct orders. Semantic type: metric.
-- total_items: Total items sold. Semantic type: metric.
-- average_review_score: Average customer review score. Range: 1-5. Semantic type: metric.
-
----
-
-## gold.customer_metrics
-
-Description:
-Customer-level purchasing and revenue behavior mart.
-
-Layer:
-gold
-
-Grain:
-One row per customer_unique_id.
-
-Primary dimensions:
-- customer_unique_id
-- customer_state
-
-Primary metrics:
-- total_orders
-- total_revenue
-- average_order_value
-
-Preferred for:
-- customer_analysis
-- retention_analysis
-- ltv_analysis
-
-Columns:
-- customer_unique_id: Persistent customer business identifier. Semantic type: business_identifier.
-- customer_state: Brazilian customer state abbreviation. Semantic type: location.
-- total_orders: Total distinct customer orders. Semantic type: metric.
-- total_revenue: Total customer revenue contribution. Unit: BRL. Semantic type: metric.
-- average_order_value: Average customer order value. Unit: BRL. Semantic type: metric.
-- first_purchase_timestamp: First recorded customer purchase timestamp. Format: YYYY-MM-DD HH24:MI:SS. Semantic type: timestamp.
-- latest_purchase_timestamp: Latest recorded customer purchase timestamp. Format: YYYY-MM-DD HH24:MI:SS. Semantic type: timestamp.
-
----
-
-## gold.seller_performance
-
-Description:
-Seller-level sales and operational performance mart.
-
-Layer:
-gold
-
-Grain:
-One row per seller_id.
-
-Primary dimensions:
+- order_id
+- product_id
+- product_category_name
 - seller_id
+- customer_id
+- customer_state
 - seller_state
 
 Primary metrics:
-- total_orders
-- total_revenue
-- average_review_score
-- average_delivery_days
+- price
+- freight_value
+- total_value (Price + Freight)
 
 Preferred for:
-- seller_analysis
-- logistics_analysis
-- operational_analysis
+- revenue_analysis
+- category_performance
+- geographic_sales_trends
+- product_ranking
 
 Columns:
-- seller_id: Seller business identifier. Semantic type: business_identifier.
-- seller_state: Seller Brazilian state abbreviation. Semantic type: location.
-- total_orders: Total seller orders. Semantic type: metric.
-- total_revenue: Total seller revenue contribution. Unit: BRL. Semantic type: metric.
-- average_review_score: Average seller review score. Range: 1-5. Semantic type: metric.
-- average_delivery_days: Average delivery duration in days. Unit: days. Semantic type: metric.
+- order_item_key: Unique identifier for the item line.
+- order_purchase_timestamp: When the order was placed.
+- product_category_name: Normalized English category name.
+- total_value: Total revenue including shipping. Semantic type: metric.
+- customer_state: Buyer location. Semantic type: location.
 
 ---
 
-## gold.delivery_metrics
+## gold.fact_order_fulfillment
 
 Description:
-Daily logistics and delivery efficiency mart.
+Logistics performance and customer satisfaction mart. Contains one row per order. Use this for delivery SLAs and review analysis.
 
 Layer:
 gold
 
 Grain:
-One row per purchase_date.
-
-Primary dimensions:
-- purchase_date
+One row per order_id.
 
 Primary metrics:
-- average_delivery_days
-- late_delivery_rate
+- delivery_days_actual
+- is_late_delivery
+- review_score
 
 Preferred for:
-- delivery_analysis
-- logistics_analysis
-- trend_analysis
-
-Columns:
-- purchase_date: Purchase date. Format: YYYY-MM-DD. Semantic type: date.
-- average_delivery_days: Average delivery duration. Unit: days. Semantic type: metric.
-- late_delivery_rate: Share of late deliveries. Range: 0.0-1.0. Semantic type: metric.
-
----
-
-## gold.review_summary
-
-Description:
-Daily customer review and satisfaction mart.
-
-Layer:
-gold
-
-Grain:
-One row per purchase_date.
-
-Primary dimensions:
-- purchase_date
-
-Primary metrics:
-- average_review_score
-- total_reviews
-- negative_review_rate
-
-Preferred for:
-- review_analysis
+- delivery_efficiency
+- logistics_sla_analysis
 - customer_satisfaction
-- diagnostic_analysis
 
 Columns:
-- purchase_date: Purchase date. Format: YYYY-MM-DD. Semantic type: date.
-- average_review_score: Average review score. Range: 1-5. Semantic type: metric.
-- total_reviews: Total submitted reviews. Semantic type: metric.
-- negative_review_rate: Share of negative reviews. Range: 0.0-1.0. Semantic type: metric.
+- order_status: Current state of the order (delivered, shipped, etc).
+- delivery_days_actual: Days taken from purchase to delivery.
+- is_late_delivery: Boolean flag for breached delivery estimates.
+- review_score: Average customer rating (1-5).
 
 ---
 
-## gold.payment_analysis
+## gold.mart_customer_behavior
 
 Description:
-Daily payment behavior and payment method mart.
-
-Layer:
-gold
-
-Grain:
-One row per purchase_date and payment_type.
-
-Primary dimensions:
-- purchase_date
-- payment_type
-
-Primary metrics:
-- total_payments
-- total_payment_value
-- average_installments
-
-Preferred for:
-- payment_analysis
-- financial_analysis
-- behavior_analysis
-
-Columns:
-- purchase_date: Purchase date. Format: YYYY-MM-DD. Semantic type: date.
-- payment_type: Customer payment method. Semantic type: categorical.
-- total_payments: Total payment transactions. Semantic type: metric.
-- total_payment_value: Total payment value. Unit: BRL. Semantic type: metric.
-- average_installments: Average payment installments. Semantic type: metric.
-
----
-
-## gold.geographic_sales
-
-Description:
-Daily geographic sales and customer distribution mart.
-
-Layer:
-gold
-
-Grain:
-One row per purchase_date, customer_state, and customer_city.
-
-Primary dimensions:
-- purchase_date
-- customer_state
-- customer_city
-
-Primary metrics:
-- total_revenue
-- total_orders
-- total_customers
-
-Preferred for:
-- geographic_analysis
-- regional_analysis
-- location_analysis
-
-Columns:
-- purchase_date: Purchase date. Format: YYYY-MM-DD. Semantic type: date.
-- customer_state: Customer Brazilian state abbreviation. Semantic type: location.
-- customer_city: Customer city. Semantic type: location.
-- total_revenue: Total revenue. Unit: BRL. Semantic type: metric.
-- total_orders: Total distinct orders. Semantic type: metric.
-- total_customers: Total unique customers. Semantic type: metric.
-
----
-
-## gold.customer_retention
-
-Description:
-Customer repeat purchase and retention mart.
+Customer-centric mart for retention and Lifetime Value (LTV) analysis. Contains one row per unique customer.
 
 Layer:
 gold
@@ -293,50 +84,38 @@ gold
 Grain:
 One row per customer_unique_id.
 
-Primary dimensions:
-- customer_unique_id
-
 Primary metrics:
+- total_lifetime_value
 - total_orders
+- is_repeat_customer
 
 Preferred for:
-- retention_analysis
-- repeat_customer_analysis
-- customer_behavior
+- customer_retention
+- segment_analysis
+- ltv_calculation
 
 Columns:
-- customer_unique_id: Persistent customer identifier. Semantic type: business_identifier.
-- total_orders: Total customer orders. Semantic type: metric.
-- is_repeat_customer: True if customer has more than one distinct order. Semantic type: boolean.
+- total_lifetime_value: Sum of all purchases (price + freight) by this customer.
+- is_repeat_customer: True if the customer has more than one order.
 
 ---
 
-## gold.operational_efficiency
+## gold.mart_monthly_performance
 
 Description:
-Seller operational shipping and pricing efficiency mart.
+High-level monthly growth tracking. Aggregated for executive summaries.
 
 Layer:
 gold
 
 Grain:
-One row per seller_id.
-
-Primary dimensions:
-- seller_id
+One row per month_start_date.
 
 Primary metrics:
-- average_freight_value
-- average_item_price
-- total_items_shipped
+- total_revenue
+- total_orders
+- total_customers
 
 Preferred for:
-- operational_analysis
-- seller_efficiency
-- shipping_analysis
-
-Columns:
-- seller_id: Seller business identifier. Semantic type: business_identifier.
-- average_freight_value: Average freight value. Unit: BRL. Semantic type: metric.
-- average_item_price: Average item selling price. Unit: BRL. Semantic type: metric.
-- total_items_shipped: Total shipped items. Semantic type: metric.
+- mom_growth_analysis
+- executive_reporting

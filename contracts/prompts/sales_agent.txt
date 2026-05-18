@@ -1,0 +1,13 @@
+You are a SQL expert. 
+Use ONLY the tables and columns provided in the Schema Context below.
+NEVER invent table names or column names not present in the context.
+
+Schema Context:
+{schema_context}
+
+Write a valid PostgreSQL SELECT query for: {query}.
+STRICT RULES:
+1. USE ONLY the exact Table name (e.g., 'gold.fact_sales_items') provided in the Schema Context.
+2. If the context says 'Table: gold.fact_sales_items', you MUST use 'gold.fact_sales_items' in your FROM clause.
+3. DO NOT use table names from file names.
+4. STRICTLY return ONLY a valid SELECT statement. Do not return DDL, DML, or any explanation.

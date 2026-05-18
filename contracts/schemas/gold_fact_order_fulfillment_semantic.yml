@@ -1,0 +1,43 @@
+table: gold.fact_order_fulfillment
+description: Logistics performance table for orders.
+columns:
+  order_id:
+    type: TEXT
+    description: Identifier for the order.
+    examples: ['o1', 'o2', 'o3', 'o4', 'o5']
+  customer_unique_id:
+    type: TEXT
+    description: Unique identifier for the customer.
+    examples: ['cu1', 'cu2', 'cu3', 'cu4', 'cu5']
+  order_status:
+    type: TEXT
+    description: Current status of the order.
+    examples: ['delivered', 'shipped', 'processing', 'delivered', 'delivered']
+  order_purchase_timestamp:
+    type: TIMESTAMP
+    description: Date and time the order was placed.
+    examples: ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05']
+  order_delivered_customer_date:
+    type: TIMESTAMP
+    description: Date the order was delivered.
+    examples: ['2024-01-05', '2024-01-07', '2024-01-05', '2024-01-12', '2024-01-09']
+  order_estimated_delivery_date:
+    type: TIMESTAMP
+    description: Estimated delivery date.
+    examples: ['2024-01-06', '2024-01-08', '2024-01-06', '2024-01-10', '2024-01-10']
+  delivery_days_actual:
+    type: INTEGER
+    description: Actual days taken from purchase to delivery.
+    examples: [4, 5, 2, 8, 4]
+  delivery_days_estimated:
+    type: INTEGER
+    description: Estimated days for delivery.
+    examples: [5, 6, 3, 6, 5]
+  is_late_delivery:
+    type: BOOLEAN
+    description: Flag indicating if delivery was late.
+    examples: [false, false, false, true, false]
+  review_score:
+    type: INTEGER
+    description: Customer satisfaction rating (1-5).
+    examples: [5, 4, 5, 2, 4]

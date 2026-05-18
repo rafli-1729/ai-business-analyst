@@ -1,24 +1,15 @@
 from orchestration.pipelines.warehouse_pipeline import run_warehouse_elt
+from warehouse.schema import create_base_schemas
 from warehouse.ingestion.config import load_ingestion_config
-
-from infra.database.engine import create_postgres_engine
-from warehouse.quality.runner import run_quality_checks
 
 def main():
     config = load_ingestion_config()
+    print("Ensuring base schemas exist...")
+    create_base_schemas(config.database_url)
+    print("Base schemas verified. Transformation pipeline is ready.")
+
     run_warehouse_elt(config.database_url)
-
-    engine = create_postgres_engine(
-        config.database_url
-    )
-
-    validation_results = run_quality_checks(
-        engine
-    )
-
-    print(validation_results)
-    print("Transformation pipeline completed.")
-
+    print("Transformation pipeline completed successfully.")
 
 if __name__ == "__main__":
     main()

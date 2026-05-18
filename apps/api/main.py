@@ -1,30 +1,33 @@
+import logging
 from fastapi import FastAPI
-from fastapi import Response
 from fastapi.middleware.cors import CORSMiddleware
-from apps.api.routes.query import router as query_router
+from pydantic import BaseModel
+import sys
+import os
 
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(
-    title="AI Business Analyst API",
-    description="Backend API for natural-language analytics over the Olist warehouse.",
-    version="0.2.0",
-)
+# Add root to path so we can import our engine
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from core_analytics.analytics.engine import analytics_engine
+
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.options("/{rest_of_path:path}")
-async def preflight_handler(rest_of_path: str):
-    return Response()
+class QueryRequest(BaseModel):
+    query: str
 
-@app.get("/health")
-def health_check() -> dict[str, str]:
-    return {"status": "ok"}
-
-
-app.include_router(query_router, prefix="/api")
+@app.post("/analyze")
+async def analyze(request: QueryRequest):
+    result_data = await analytics_engine.run(request.query)
+    return {
+        "summary": [a.model_dump() for a in result_data["artifacts"]],
+        "active_agents": result_data["active_agents"]
+    }

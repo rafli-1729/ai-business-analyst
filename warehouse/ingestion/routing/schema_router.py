@@ -1,4 +1,7 @@
-from warehouse.ingestion.registry import TABLE_REGISTRY
+import json
+
+with open("warehouse/ingestion/registry.json", "r") as f:
+    TABLE_REGISTRY = json.load(f)
 
 
 def resolve_target_schema(table_name: str) -> str:

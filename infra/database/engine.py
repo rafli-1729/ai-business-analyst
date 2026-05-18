@@ -5,7 +5,18 @@ from sqlalchemy import create_engine, text
 
 
 def create_postgres_engine(database_url: str):
-    return create_engine(database_url, connect_args={"sslmode": "require"})
+    connect_args = {"sslmode": "require"}
+    
+    # Supabase pooler optimization
+    if "pooler.supabase.com" in database_url or ":6543" in database_url:
+        connect_args["options"] = "-c default_transaction_read_only=off"
+
+    return create_engine(
+        database_url, 
+        connect_args=connect_args,
+        # Required for massive ingestion speed and DDL compatibility
+        isolation_level="AUTOCOMMIT"
+    )
 
 
 def quote_ident(name: str) -> sql.Identifier:
@@ -35,17 +46,11 @@ def normalize_columns(value) -> list[str]:
 
 
 def execute_sql_text(engine, sql_text: str) -> None:
-    raw_conn = engine.raw_connection()
+    if not sql_text.strip():
+        return
 
-    try:
-        with raw_conn.cursor() as cursor:
-            cursor.execute(sql_text)
-        raw_conn.commit()
-    except Exception:
-        raw_conn.rollback()
-        raise
-    finally:
-        raw_conn.close()
+    with engine.connect() as conn:
+        conn.execute(text(sql_text))
 
 
 def execute_sql_file(engine, path: Path) -> None:

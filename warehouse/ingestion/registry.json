@@ -1,0 +1,74 @@
+{
+    "customers": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "dimension",
+        "sheet_gid": "1213647959",
+        "unique_key": ["customer_id"]
+    },
+    "geolocation": {
+        "source_type": "kaggle",
+        "target_schema": "reference",
+        "table_type": "reference"
+    },
+    "products": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "dimension",
+        "sheet_gid": "1490659044",
+        "unique_key": ["product_id"]
+    },
+    "sellers": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "dimension",
+        "sheet_gid": "1046237413",
+        "unique_key": ["seller_id"]
+    },
+    "product_category_name_translation": {
+        "source_type": "kaggle",
+        "target_schema": "reference",
+        "table_type": "reference",
+        "unique_key": ["product_category_name"]
+    },
+    "order_items": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "fact",
+        "sheet_gid": "1765416245",
+        "unique_key": ["order_id", "order_item_id"]
+    },
+    "order_payments": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "fact",
+        "sheet_gid": "1815706989",
+        "unique_key": ["order_id", "payment_sequential"]
+    },
+    "order_reviews": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "fact",
+        "sheet_gid": "390056418",
+        "unique_key": ["review_id"]
+    },
+    "orders": {
+        "source_type": "google_sheets",
+        "target_schema": "bronze",
+        "table_type": "fact",
+        "sheet_gid": "591808341",
+        "unique_key": ["order_id"]
+    },
+    "geography_master": {
+        "source_type": "local_seed",
+        "target_schema": "master",
+        "table_type": "reference",
+        "local_path": "warehouse/transformation/seeds/geography_master.csv"
+    },
+    "product_category_mapping": {
+        "source_type": "local_seed",
+        "target_schema": "reference",
+        "table_type": "reference",
+        "local_path": "warehouse/transformation/seeds/product_category_mapping.csv"
+    }
+}

@@ -1,0 +1,51 @@
+table: gold.fact_sales_items
+description: Ultimate wide table for revenue and product performance analysis.
+columns:
+  order_item_key:
+    type: TEXT
+    description: Unique identifier for each item in an order.
+    examples: ['oi123', 'oi124', 'oi125', 'oi126', 'oi127']
+  order_id:
+    type: TEXT
+    description: Identifier for the order.
+    examples: ['o1', 'o2', 'o3', 'o4', 'o5']
+  order_purchase_timestamp:
+    type: TIMESTAMP
+    description: Date and time the order was placed. Use for time-based filtering.
+    examples: ['2024-01-01 10:00:00', '2024-01-02 11:30:00', '2024-01-03 09:15:00', '2024-01-04 14:20:00', '2024-01-05 16:45:00']
+  product_id:
+    type: TEXT
+    description: Identifier for the product.
+    examples: ['p1', 'p2', 'p3', 'p4', 'p5']
+  product_category_name:
+    type: TEXT
+    description: Normalized product category name in English.
+    examples: ['health', 'electronics', 'health', 'sports', 'electronics']
+  seller_id:
+    type: TEXT
+    description: Identifier for the seller.
+    examples: ['s1', 's2', 's3', 's4', 's5']
+  seller_state:
+    type: TEXT
+    description: Two-letter Brazilian state code of the seller.
+    examples: ['SP', 'RJ', 'SP', 'MG', 'SP']
+  customer_id:
+    type: TEXT
+    description: Identifier for the customer.
+    examples: ['c1', 'c2', 'c3', 'c4', 'c5']
+  customer_state:
+    type: TEXT
+    description: Two-letter Brazilian state code of the buyer.
+    examples: ['SP', 'RJ', 'SP', 'MG', 'SP']
+  price:
+    type: NUMERIC
+    description: Selling price of the product item.
+    examples: [45.0, 110.0, 75.0, 190.0, 40.0]
+  freight_value:
+    type: NUMERIC
+    description: Shipping cost for the product item.
+    examples: [5.0, 10.5, 5.0, 10.0, 5.0]
+  total_value:
+    type: NUMERIC
+    description: Gross value (Price + Freight). Use this for total revenue calculations.
+    examples: [50.0, 120.5, 80.0, 200.0, 45.0]

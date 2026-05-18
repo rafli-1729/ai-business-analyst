@@ -1,0 +1,23 @@
+table: gold.mart_monthly_performance
+description: High-level monthly aggregated business performance.
+columns:
+  month_start_date:
+    type: DATE
+    description: Reporting month start date.
+    examples: ['2024-01-01', '2024-02-01', '2024-03-01', '2024-04-01', '2024-05-01']
+  total_revenue:
+    type: NUMERIC
+    description: Total revenue generated in the month.
+    examples: [10000.0, 12000.0, 11000.0, 15000.0, 14000.0]
+  total_orders:
+    type: INTEGER
+    description: Count of total orders in the month.
+    examples: [100, 120, 110, 150, 140]
+  total_customers:
+    type: INTEGER
+    description: Count of unique active customers in the month.
+    examples: [90, 110, 100, 140, 130]
+  avg_order_value:
+    type: NUMERIC
+    description: Average order value in the month.
+    examples: [100.0, 100.0, 100.0, 100.0, 107.0]

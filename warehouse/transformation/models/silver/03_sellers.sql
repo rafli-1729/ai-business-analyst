@@ -1,40 +1,43 @@
-DROP TABLE IF EXISTS silver.sellers CASCADE;
+-- Silver Sellers: Normalized & Incremental Upsert (Join-based)
+CREATE UNLOGGED TABLE IF NOT EXISTS silver.sellers (
+    seller_id TEXT PRIMARY KEY,
+    seller_zip_code_prefix INTEGER,
+    seller_city TEXT,
+    seller_state TEXT,
+    _last_updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-CREATE TABLE silver.sellers AS
-
+CREATE TEMP TABLE stg_sellers_cleaned AS
 SELECT
-    NULLIF(
-        TRIM(seller_id::TEXT),
-        ''
-    ) AS seller_id,
+    NULLIF(TRIM(b.seller_id::TEXT), '') AS seller_id,
+    NULLIF(TRIM(b.seller_zip_code_prefix::TEXT), '')::INTEGER AS seller_zip_code_prefix,
+    COALESCE(gm.canonical_city, TRIM(b.seller_city)) AS seller_city,
+    COALESCE(gm.state, UPPER(TRIM(b.seller_state))) AS seller_state
+FROM bronze.sellers b
+LEFT JOIN master.geography_master gm 
+    ON TRIM(b.seller_city) = gm.raw_city AND UPPER(TRIM(b.seller_state)) = gm.state;
 
-    NULLIF(
-        TRIM(seller_zip_code_prefix::TEXT),
-        ''
-    )::INTEGER AS seller_zip_code_prefix,
+INSERT INTO silver.sellers (
+    seller_id,
+    seller_zip_code_prefix,
+    seller_city,
+    seller_state,
+    _last_updated_at
+)
+SELECT 
+    seller_id,
+    seller_zip_code_prefix,
+    seller_city,
+    seller_state,
+    NOW()
+FROM stg_sellers_cleaned
+ON CONFLICT (seller_id) 
+DO UPDATE SET
+    seller_zip_code_prefix = EXCLUDED.seller_zip_code_prefix,
+    seller_city = EXCLUDED.seller_city,
+    seller_state = EXCLUDED.seller_state,
+    _last_updated_at = NOW();
 
-    LOWER(
-        TRIM(
-            REGEXP_REPLACE(
-                seller_city::TEXT,
-                '\s+',
-                ' ',
-                'g'
-            )
-        )
-    ) AS seller_city,
+CREATE INDEX IF NOT EXISTS idx_silver_sellers_state ON silver.sellers(seller_state);
 
-    UPPER(
-        TRIM(seller_state::TEXT)
-    ) AS seller_state
-
-FROM bronze.sellers;
-
-ALTER TABLE silver.sellers
-ADD PRIMARY KEY(seller_id);
-
-CREATE INDEX idx_silver_sellers_state
-ON silver.sellers(seller_state);
-
-COMMENT ON TABLE silver.sellers IS
-'Cleaned seller dimension table.';
+COMMENT ON TABLE silver.sellers IS 'Cleaned seller dimension table with normalized geography.';

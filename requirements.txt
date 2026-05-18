@@ -8,3 +8,6 @@ httpx
 pandas
 pydantic
 pydantic-settings
+langchain
+langchain-openai
+langgraph

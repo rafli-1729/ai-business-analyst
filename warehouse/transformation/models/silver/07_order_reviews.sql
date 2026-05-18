@@ -1,56 +1,56 @@
-DROP TABLE IF EXISTS silver.order_reviews CASCADE;
-
-CREATE TABLE silver.order_reviews AS
-
-SELECT
-    NULLIF(
-        TRIM(review_id::TEXT),
-        ''
-    ) AS review_id,
-
-    NULLIF(
-        TRIM(order_id::TEXT),
-        ''
-    ) AS order_id,
-
-    review_score::INTEGER
-        AS review_score,
-
-    silver.blank_nan_to_null(
-        review_comment_title::TEXT
-    ) AS review_comment_title,
-
-    silver.blank_nan_to_null(
-        review_comment_message::TEXT
-    ) AS review_comment_message,
-
-    review_creation_date::TIMESTAMP
-        AS review_creation_date,
-
-    review_answer_timestamp::TIMESTAMP
-        AS review_answer_timestamp
-
-FROM bronze.order_reviews;
-
-ALTER TABLE silver.order_reviews
-ADD PRIMARY KEY(
-    review_id,
-    order_id
+-- Silver Order Reviews: Cleaned & Incremental Upsert
+CREATE UNLOGGED TABLE IF NOT EXISTS silver.order_reviews (
+    review_id TEXT,
+    order_id TEXT,
+    review_score INTEGER,
+    review_comment_title TEXT,
+    review_comment_message TEXT,
+    review_creation_date TIMESTAMP,
+    review_answer_timestamp TIMESTAMP,
+    _last_updated_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (review_id, order_id)
 );
 
-ALTER TABLE silver.order_reviews
-ADD CONSTRAINT fk_order_reviews_order
-FOREIGN KEY(order_id)
-REFERENCES silver.orders(order_id);
+CREATE TEMP TABLE stg_order_reviews_cleaned AS
+SELECT
+    NULLIF(TRIM(review_id::TEXT), '') AS review_id,
+    NULLIF(TRIM(order_id::TEXT), '') AS order_id,
+    NULLIF(TRIM(review_score::TEXT), '')::NUMERIC::INTEGER AS review_score,
+    NULLIF(TRIM(review_comment_title::TEXT), '') AS review_comment_title,
+    NULLIF(TRIM(review_comment_message::TEXT), '') AS review_comment_message,
+    NULLIF(TRIM(review_creation_date::TEXT), '')::TIMESTAMP AS review_creation_date,
+    NULLIF(TRIM(review_answer_timestamp::TEXT), '')::TIMESTAMP AS review_answer_timestamp
+FROM bronze.order_reviews;
 
-CREATE INDEX idx_silver_order_reviews_score
-ON silver.order_reviews(review_score);
+INSERT INTO silver.order_reviews (
+    review_id,
+    order_id,
+    review_score,
+    review_comment_title,
+    review_comment_message,
+    review_creation_date,
+    review_answer_timestamp,
+    _last_updated_at
+)
+SELECT 
+    review_id,
+    order_id,
+    review_score,
+    review_comment_title,
+    review_comment_message,
+    review_creation_date,
+    review_answer_timestamp,
+    NOW()
+FROM stg_order_reviews_cleaned
+ON CONFLICT (review_id, order_id) 
+DO UPDATE SET
+    review_score = EXCLUDED.review_score,
+    review_comment_title = EXCLUDED.review_comment_title,
+    review_comment_message = EXCLUDED.review_comment_message,
+    review_creation_date = EXCLUDED.review_creation_date,
+    review_answer_timestamp = EXCLUDED.review_answer_timestamp,
+    _last_updated_at = NOW();
 
-COMMENT ON TABLE silver.order_reviews IS
-'Cleaned customer review fact table.';
+CREATE INDEX IF NOT EXISTS idx_silver_order_reviews_score ON silver.order_reviews(review_score);
 
-COMMENT ON COLUMN silver.order_reviews.review_score IS
-'Customer satisfaction score ranging from 1 to 5.';
-
-COMMENT ON COLUMN silver.order_reviews.review_comment_message IS
-'Optional free-text customer review.';
+COMMENT ON TABLE silver.order_reviews IS 'Cleaned customer review fact table.';

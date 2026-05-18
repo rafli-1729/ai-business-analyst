@@ -1,4 +1,5 @@
 import uuid
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,13 +9,22 @@ from sqlalchemy import text
 
 from infra.database.engine import create_postgres_engine, execute_sql_file
 from warehouse.quality.checks import count_quality_issues
+from infra.observability.logger import setup_logging
+
+logger = setup_logging()
 
 @dataclass(frozen=True)
 class EltConfig:
     database_url: str
     sql_root: Path = Path("warehouse/transformation/models")
-    layer_order: tuple[str, ...] = ("bronze", "silver", "gold")
+    layer_order: tuple[str, ...] = ("reference", "bronze", "master", "silver", "gold")
     ops_schema: str = "ops"
+
+
+def run_warehouse_elt(database_url: str):
+    """Wrapper to maintain compatibility with existing pipeline architecture."""
+    config = EltConfig(database_url=database_url)
+    return run_elt(config)
 
 
 def _sql_files_for_layers(config: EltConfig) -> list[Path]:
@@ -22,13 +32,15 @@ def _sql_files_for_layers(config: EltConfig) -> list[Path]:
 
     for layer_name in config.layer_order:
         layer_dir = config.sql_root / layer_name
-        files.extend(sorted(layer_dir.glob("*.sql")))
+        if layer_dir.exists():
+            files.extend(sorted(layer_dir.glob("*.sql")))
 
     return files
 
 
 def _ensure_elt_run_table(engine, ops_schema: str) -> None:
     ddl = f"""
+    SET default_transaction_read_only = off;
     CREATE SCHEMA IF NOT EXISTS {ops_schema};
 
     CREATE TABLE IF NOT EXISTS {ops_schema}.elt_runs (
@@ -41,17 +53,8 @@ def _ensure_elt_run_table(engine, ops_schema: str) -> None:
     );
     """
 
-    raw_conn = engine.raw_connection()
-
-    try:
-        with raw_conn.cursor() as cursor:
-            cursor.execute(ddl)
-        raw_conn.commit()
-    except Exception:
-        raw_conn.rollback()
-        raise
-    finally:
-        raw_conn.close()
+    with engine.connect() as conn:
+        conn.execute(text(ddl))
 
 
 def _record_elt_run(
@@ -65,7 +68,7 @@ def _record_elt_run(
 ) -> None:
     finished_at = datetime.now(timezone.utc) if status in {"success", "failed"} else None
 
-    with engine.begin() as conn:
+    with engine.connect() as conn:
         conn.execute(
             text(
                 f"""
@@ -128,7 +131,7 @@ def run_elt(config: EltConfig) -> dict:
     try:
         for path in sql_files:
             relative_path = str(path.relative_to(config.sql_root)).replace("\\", "/")
-            print(f"Executing ELT SQL: {relative_path}")
+            logger.info(f"Executing ELT SQL: {relative_path}")
             execute_sql_file(engine, path)
             executed_files.append(relative_path)
             _record_elt_run(

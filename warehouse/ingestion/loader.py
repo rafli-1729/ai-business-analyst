@@ -1,5 +1,8 @@
 import math
 import uuid
+import json
+import concurrent.futures
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -7,11 +10,7 @@ import pandas as pd
 from sqlalchemy import text
 from tqdm import tqdm
 
-from infra.database.engine import (
-    create_postgres_engine,
-    quoted_identifier,
-    quoted_table,
-)
+from core_analytics.observability.logger import log_pipeline_execution
 from warehouse.ingestion.config import (
     IngestionConfig,
     IngestionResult,
@@ -23,7 +22,6 @@ from warehouse.ingestion.metadata.metadata import (
     record_ingestion_run,
     table_exists,
 )
-from warehouse.ingestion.registry import TABLE_REGISTRY
 from warehouse.ingestion.routing.schema_router import (
     resolve_target_schema,
 )
@@ -31,14 +29,21 @@ from warehouse.ingestion.sources.kaggle import KaggleSource
 from warehouse.ingestion.sources.google_sheets import (
     GoogleSheetsSource,
 )
+from warehouse.ingestion.sources.local_seed import (
+    LocalSeedSource,
+)
 from warehouse.ingestion.writer.postgres_copy import (
     copy_chunk_to_postgres,
 )
 
-from warehouse.ingestion.sources.google_sheets import (
-    GoogleSheetsSource,
-)
+with open("warehouse/ingestion/registry.json", "r") as f:
+    TABLE_REGISTRY = json.load(f)
 
+
+import logging
+from infra.observability.logger import setup_logging
+
+logger = logging.getLogger(__name__)
 
 class BronzeIngestor:
     """
@@ -67,6 +72,8 @@ class BronzeIngestor:
             "google_sheets": GoogleSheetsSource(
                 spreadsheet_id=config.google_sheet_id
             ),
+            
+            "local_seed": LocalSeedSource(),
         }
 
     def ingest_dataset(self) -> list[IngestionResult]:
@@ -91,7 +98,7 @@ class BronzeIngestor:
                 )
             )
 
-        print("\nIngestion completed.")
+        logger.info("Ingestion completed.")
 
         return results
 
@@ -108,7 +115,7 @@ class BronzeIngestor:
                 )
 
                 if table_name not in TABLE_REGISTRY:
-                    print(
+                    logger.warning(
                         f"Skipping unregistered table: {table_name}"
                     )
                     continue
@@ -159,8 +166,8 @@ class BronzeIngestor:
                 table_name,
             )
         ):
-            print(
-                f"\nSkipping {target_schema}.{table_name}: "
+            logger.info(
+                f"Skipping {target_schema}.{table_name}: "
                 f"source checksum already ingested."
             )
 
@@ -202,8 +209,8 @@ class BronzeIngestor:
         inserted_rows = 0
         processed_chunks = 0
 
-        print(
-            f"\nIngesting {target_schema}.{table_name}"
+        logger.info(
+            f"Ingesting {target_schema}.{table_name}"
         )
 
         try:
@@ -213,44 +220,73 @@ class BronzeIngestor:
             )
 
             first_chunk = True
+            start_copy = time.time()
 
-            for chunk in tqdm(
-                reader,
-                total=total_chunks,
-                desc=table_name,
-            ):
-
-                chunk = self._prepare_chunk(
-                    chunk=chunk,
-                    source_file=source_path.name,
-                    checksum=checksum,
-                    run_id=run_id,
-                )
-
-                if first_chunk:
-                    self._create_staging_table(
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+                futures = []
+                
+                # Submit all chunks to the executor
+                for chunk in reader:
+                    chunk = self._prepare_chunk(
                         chunk=chunk,
-                        schema_name=target_schema,
-                        staging_table=staging_table,
+                        source_file=source_path.name,
+                        checksum=checksum,
+                        run_id=run_id,
                     )
 
-                    first_chunk = False
+                    if first_chunk:
+                        self._create_staging_table(
+                            chunk=chunk,
+                            schema_name=target_schema,
+                            staging_table=staging_table,
+                        )
+                        first_chunk = False
 
-                copy_chunk_to_postgres(
-                    df=chunk,
-                    schema_name=target_schema,
-                    table_name=staging_table,
-                    engine=self.engine,
+                    # Parallel COPY execution
+                    future = executor.submit(
+                        copy_chunk_to_postgres,
+                        df=chunk,
+                        schema_name=target_schema,
+                        table_name=staging_table,
+                        engine=self.engine,
+                    )
+                    futures.append(future)
+                    
+                    processed_chunks += 1
+                    inserted_rows += len(chunk.index)
+
+                # Accuracy improvement: tqdm now tracks completion
+                for _ in tqdm(
+                    concurrent.futures.as_completed(futures),
+                    total=len(futures),
+                    desc=table_name,
+                ):
+                    pass
+
+                # Check for errors in threads
+                for f in futures:
+                    if f.exception():
+                        raise f.exception()
+
+            copy_duration = time.time() - start_copy
+            logger.info(f"COPY process for {table_name} took {copy_duration:.2f}s")
+
+            start_upsert = time.time()
+            if table_name in TABLE_REGISTRY and "unique_key" in TABLE_REGISTRY[table_name]:
+                self._upsert_from_staging(
+                    target_schema=target_schema,
+                    staging_table=staging_table,
+                    target_table=table_name,
+                    unique_keys=TABLE_REGISTRY[table_name]["unique_key"]
                 )
-
-                processed_chunks += 1
-                inserted_rows += len(chunk.index)
-
-            self._swap_staging_table(
-                target_schema=target_schema,
-                staging_table=staging_table,
-                target_table=table_name,
-            )
+            else:
+                self._swap_staging_table(
+                    target_schema=target_schema,
+                    staging_table=staging_table,
+                    target_table=table_name,
+                )
+            upsert_duration = time.time() - start_upsert
+            logger.info(f"UPSERT process for {table_name} took {upsert_duration:.2f}s")
 
             record_ingestion_run(
                 self.engine,
@@ -265,6 +301,8 @@ class BronzeIngestor:
                 inserted_rows=inserted_rows,
                 ops_schema=self.config.ops_schema,
             )
+            
+            log_pipeline_execution("ingestion", table_name, "SUCCESS", inserted_rows)
 
             return IngestionResult(
                 source_file=source_path.name,
@@ -292,6 +330,8 @@ class BronzeIngestor:
                 inserted_rows=inserted_rows,
                 ops_schema=self.config.ops_schema,
             )
+            
+            log_pipeline_execution("ingestion", table_name, "FAILED", 0)
 
             raise
 
@@ -326,14 +366,22 @@ class BronzeIngestor:
         schema_name: str,
         staging_table: str,
     ) -> None:
-
-        chunk.head(0).to_sql(
-            staging_table,
-            self.engine,
-            schema=schema_name,
-            if_exists="replace",
-            index=False,
-        )
+        """Creates a staging table using raw SQL instead of to_sql for maximum speed."""
+        
+        cols = []
+        for col in chunk.columns:
+            # We use TEXT for everything in Bronze to ensure zero ingestion failures.
+            # Typing is handled during Silver transformation.
+            cols.append(f"{quoted_identifier(col)} TEXT")
+        
+        col_def = ", ".join(cols)
+        ddl = f"CREATE UNLOGGED TABLE {quoted_table(schema_name, staging_table)} ({col_def});"
+        
+        with self.engine.connect() as conn:
+            conn.execute(text(f"DROP TABLE IF EXISTS {quoted_table(schema_name, staging_table)};"))
+            conn.execute(text(ddl))
+            conn.commit()
+            logger.info(f"Created staging table {schema_name}.{staging_table} using raw SQL.")
 
     def _swap_staging_table(
         self,
@@ -355,6 +403,65 @@ class BronzeIngestor:
                     """
                 )
             )
+
+    def _upsert_from_staging(
+        self,
+        target_schema: str,
+        staging_table: str,
+        target_table: str,
+        unique_keys: list[str],
+    ) -> None:
+        """Performs incremental upsert from staging (TEXT) to target table (Typed)."""
+        
+        # Ensure target table exists (if not, just rename staging)
+        if not table_exists(self.engine, target_schema, target_table):
+            self._swap_staging_table(target_schema, staging_table, target_table)
+            return
+
+        with self.engine.connect() as conn:
+            # Get target column types to perform proper casting from TEXT staging
+            type_query = text(f"""
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_schema = :schema AND table_name = :table
+            """)
+            target_info = {row[0]: row[1] for row in conn.execute(type_query, {"schema": target_schema, "table": target_table})}
+            
+            all_cols = list(target_info.keys())
+            non_key_cols = [c for c in all_cols if c not in unique_keys]
+            
+            # Construct SELECT with casting
+            # Use appropriate SQL casting for each column based on target schema
+            select_list_parts = []
+            for c in all_cols:
+                target_type = target_info[c].lower()
+                # Simple casting logic
+                if target_type in ['numeric', 'double precision', 'real']:
+                    select_list_parts.append(f"NULLIF({quoted_identifier(c)}, '')::{target_type}")
+                elif target_type in ['integer', 'bigint']:
+                    select_list_parts.append(f"NULLIF({quoted_identifier(c)}, '')::NUMERIC::INTEGER")
+                else:
+                    select_list_parts.append(f"{quoted_identifier(c)}::{target_type}")
+            
+            select_list = ", ".join(select_list_parts)
+            col_list = ", ".join([quoted_identifier(c) for c in all_cols])
+            
+            # Construct UPDATE SET
+            update_list = ", ".join([f"{quoted_identifier(c)} = EXCLUDED.{quoted_identifier(c)}" for c in non_key_cols])
+            conflict_keys = ", ".join([quoted_identifier(c) for c in unique_keys])
+
+            upsert_query = text(f"""
+                INSERT INTO {quoted_table(target_schema, target_table)} ({col_list})
+                SELECT {select_list} FROM {quoted_table(target_schema, staging_table)}
+                ON CONFLICT ({conflict_keys}) 
+                DO UPDATE SET {update_list};
+                
+                DROP TABLE {quoted_table(target_schema, staging_table)};
+            """)
+
+            with self.engine.connect() as transaction_conn:
+                transaction_conn.execute(upsert_query)
+                logger.info(f"Upserted data into {target_schema}.{target_table} with proper casting.")
 
     def _ensure_required_schemas(self) -> None:
 

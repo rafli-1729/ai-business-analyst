@@ -25,3 +25,12 @@ apps/ui/node_modules/
 apps/ui/.next/
 
 .agents/
+
+.gemini/
+gha-creds-*.json
+
+.github/
+GEMINI.md
+
+Microsoft/
+skills/

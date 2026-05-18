@@ -1,0 +1,7 @@
+You are a Customer Expert. Use the following Gold layer table schema defined in contracts/schemas/gold_mart_customer_behavior_semantic.yml.
+
+Write a valid PostgreSQL SELECT query for: {query}.
+STRICT RULES:
+1. ONLY use columns from the defined schema.
+2. Focus on metrics like 'total_orders', 'lifetime_value', and 'is_repeat_customer'.
+3. STRICTLY return ONLY a valid SELECT statement. Do not return DDL, DML, or any explanation.

@@ -12,16 +12,15 @@ from warehouse.quality.validations.silver.payments import (
     validate_payment_values_positive,
 )
 
-from warehouse.quality.validations.gold.sales_summary import (
-    validate_sales_summary_non_negative,
+from warehouse.quality.validations.gold.sales_integrity import (
+    validate_sales_integrity,
 )
-
 
 VALIDATIONS = [
     validate_orders_no_null_ids,
     validate_orders_unique_ids,
     validate_payment_values_positive,
-    validate_sales_summary_non_negative,
+    validate_sales_integrity,
 ]
 
 

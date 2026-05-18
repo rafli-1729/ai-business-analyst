@@ -1,474 +1,52 @@
 {
-  "schema_version": "v2",
-
+  "schema_version": "v3",
   "tables": [
-
     {
-      "table_name": "gold.sales_summary",
+      "table_name": "gold.fact_sales_items",
       "layer": "gold",
-      "description": "Daily business sales performance summary mart.",
-      "grain": "One row per purchase_date.",
-      "primary_dimensions": [
-        "purchase_date"
-      ],
-      "primary_metrics": [
-        "total_revenue",
-        "total_orders",
-        "total_customers",
-        "total_items",
-        "average_order_value",
-        "average_freight_value"
-      ],
-      "preferred_for": [
-        "trend_analysis",
-        "executive_summary",
-        "growth_analysis"
-      ],
+      "description": "One row per item sold. Primary table for revenue and product analysis.",
       "columns": [
-        {
-          "name": "purchase_date",
-          "semantic_type": "date",
-          "format": "YYYY-MM-DD",
-          "description": "Purchase date at daily grain."
-        },
-        {
-          "name": "total_revenue",
-          "semantic_type": "metric",
-          "unit": "BRL",
-          "description": "Total successful payment revenue."
-        },
-        {
-          "name": "total_orders",
-          "semantic_type": "metric",
-          "description": "Total distinct orders."
-        },
-        {
-          "name": "total_customers",
-          "semantic_type": "metric",
-          "description": "Total unique customers."
-        },
-        {
-          "name": "total_items",
-          "semantic_type": "metric",
-          "description": "Total items sold."
-        },
-        {
-          "name": "average_order_value",
-          "semantic_type": "metric",
-          "unit": "BRL",
-          "description": "Average payment value per order."
-        },
-        {
-          "name": "average_freight_value",
-          "semantic_type": "metric",
-          "unit": "BRL",
-          "description": "Average freight cost per item."
-        }
+        {"name": "order_item_key", "semantic_type": "identifier"},
+        {"name": "order_id", "semantic_type": "identifier"},
+        {"name": "product_category_name", "semantic_type": "dimension"},
+        {"name": "price", "semantic_type": "metric"},
+        {"name": "freight_value", "semantic_type": "metric"},
+        {"name": "total_value", "semantic_type": "metric", "description": "Price + Freight"},
+        {"name": "customer_state", "semantic_type": "location"},
+        {"name": "order_purchase_timestamp", "semantic_type": "timestamp"}
       ]
     },
-
     {
-      "table_name": "gold.category_sales",
+      "table_name": "gold.fact_order_fulfillment",
       "layer": "gold",
-      "description": "Daily category-level sales performance mart.",
-      "grain": "One row per purchase_date and product_category.",
-      "primary_dimensions": [
-        "purchase_date",
-        "product_category"
-      ],
-      "primary_metrics": [
-        "total_revenue",
-        "total_orders",
-        "total_items",
-        "average_review_score"
-      ],
-      "preferred_for": [
-        "ranking_analysis",
-        "category_analysis",
-        "product_performance"
-      ],
+      "description": "One row per order. Primary table for delivery performance and satisfaction.",
       "columns": [
-        {
-          "name": "purchase_date",
-          "semantic_type": "date",
-          "format": "YYYY-MM-DD"
-        },
-        {
-          "name": "product_category",
-          "semantic_type": "dimension",
-          "description": "English-translated product category."
-        },
-        {
-          "name": "total_revenue",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "total_orders",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "total_items",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "average_review_score",
-          "semantic_type": "metric",
-          "range": "1-5"
-        }
+        {"name": "order_id", "semantic_type": "identifier"},
+        {"name": "delivery_days_actual", "semantic_type": "metric"},
+        {"name": "is_late_delivery", "semantic_type": "boolean"},
+        {"name": "review_score", "semantic_type": "metric"}
       ]
     },
-
     {
-      "table_name": "gold.customer_metrics",
+      "table_name": "gold.mart_customer_behavior",
       "layer": "gold",
-      "description": "Customer-level purchasing and revenue behavior mart.",
-      "grain": "One row per customer_unique_id.",
-      "primary_dimensions": [
-        "customer_unique_id",
-        "customer_state"
-      ],
-      "primary_metrics": [
-        "total_orders",
-        "total_revenue",
-        "average_order_value"
-      ],
-      "preferred_for": [
-        "customer_analysis",
-        "retention_analysis",
-        "ltv_analysis"
-      ],
+      "description": "One row per unique customer. Primary table for retention and LTV.",
       "columns": [
-        {
-          "name": "customer_unique_id",
-          "semantic_type": "business_identifier"
-        },
-        {
-          "name": "customer_state",
-          "semantic_type": "location"
-        },
-        {
-          "name": "total_orders",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "total_revenue",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "average_order_value",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "first_purchase_timestamp",
-          "semantic_type": "timestamp",
-          "format": "YYYY-MM-DD HH24:MI:SS"
-        },
-        {
-          "name": "latest_purchase_timestamp",
-          "semantic_type": "timestamp",
-          "format": "YYYY-MM-DD HH24:MI:SS"
-        }
+        {"name": "customer_unique_id", "semantic_type": "identifier"},
+        {"name": "total_lifetime_value", "semantic_type": "metric"},
+        {"name": "total_orders", "semantic_type": "metric"},
+        {"name": "is_repeat_customer", "semantic_type": "boolean"}
       ]
     },
-
     {
-      "table_name": "gold.seller_performance",
+      "table_name": "gold.mart_monthly_performance",
       "layer": "gold",
-      "description": "Seller-level sales and operational performance mart.",
-      "grain": "One row per seller_id.",
-      "primary_dimensions": [
-        "seller_id",
-        "seller_state"
-      ],
-      "primary_metrics": [
-        "total_orders",
-        "total_revenue",
-        "average_review_score",
-        "average_delivery_days"
-      ],
-      "preferred_for": [
-        "seller_analysis",
-        "logistics_analysis",
-        "operational_analysis"
-      ],
+      "description": "High level monthly trends.",
       "columns": [
-        {
-          "name": "seller_id",
-          "semantic_type": "business_identifier"
-        },
-        {
-          "name": "seller_state",
-          "semantic_type": "location"
-        },
-        {
-          "name": "total_orders",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "total_revenue",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "average_review_score",
-          "semantic_type": "metric",
-          "range": "1-5"
-        },
-        {
-          "name": "average_delivery_days",
-          "semantic_type": "metric",
-          "unit": "days"
-        }
-      ]
-    },
-
-    {
-      "table_name": "gold.delivery_metrics",
-      "layer": "gold",
-      "description": "Daily logistics and delivery efficiency mart.",
-      "grain": "One row per purchase_date.",
-      "primary_dimensions": [
-        "purchase_date"
-      ],
-      "primary_metrics": [
-        "average_delivery_days",
-        "late_delivery_rate"
-      ],
-      "preferred_for": [
-        "delivery_analysis",
-        "logistics_analysis",
-        "trend_analysis"
-      ],
-      "columns": [
-        {
-          "name": "purchase_date",
-          "semantic_type": "date",
-          "format": "YYYY-MM-DD"
-        },
-        {
-          "name": "average_delivery_days",
-          "semantic_type": "metric",
-          "unit": "days"
-        },
-        {
-          "name": "late_delivery_rate",
-          "semantic_type": "metric",
-          "range": "0.0-1.0"
-        }
-      ]
-    },
-
-    {
-      "table_name": "gold.review_summary",
-      "layer": "gold",
-      "description": "Daily customer review and satisfaction mart.",
-      "grain": "One row per purchase_date.",
-      "primary_dimensions": [
-        "purchase_date"
-      ],
-      "primary_metrics": [
-        "average_review_score",
-        "total_reviews",
-        "negative_review_rate"
-      ],
-      "preferred_for": [
-        "review_analysis",
-        "customer_satisfaction",
-        "diagnostic_analysis"
-      ],
-      "columns": [
-        {
-          "name": "purchase_date",
-          "semantic_type": "date",
-          "format": "YYYY-MM-DD"
-        },
-        {
-          "name": "average_review_score",
-          "semantic_type": "metric",
-          "range": "1-5"
-        },
-        {
-          "name": "total_reviews",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "negative_review_rate",
-          "semantic_type": "metric",
-          "range": "0.0-1.0"
-        }
-      ]
-    },
-
-    {
-      "table_name": "gold.payment_analysis",
-      "layer": "gold",
-      "description": "Daily payment behavior and payment method mart.",
-      "grain": "One row per purchase_date and payment_type.",
-      "primary_dimensions": [
-        "purchase_date",
-        "payment_type"
-      ],
-      "primary_metrics": [
-        "total_payments",
-        "total_payment_value",
-        "average_installments"
-      ],
-      "preferred_for": [
-        "payment_analysis",
-        "financial_analysis",
-        "behavior_analysis"
-      ],
-      "columns": [
-        {
-          "name": "purchase_date",
-          "semantic_type": "date",
-          "format": "YYYY-MM-DD"
-        },
-        {
-          "name": "payment_type",
-          "semantic_type": "categorical"
-        },
-        {
-          "name": "total_payments",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "total_payment_value",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "average_installments",
-          "semantic_type": "metric"
-        }
-      ]
-    },
-
-    {
-      "table_name": "gold.geographic_sales",
-      "layer": "gold",
-      "description": "Daily geographic sales and customer distribution mart.",
-      "grain": "One row per purchase_date, customer_state, and customer_city.",
-      "primary_dimensions": [
-        "purchase_date",
-        "customer_state",
-        "customer_city"
-      ],
-      "primary_metrics": [
-        "total_revenue",
-        "total_orders",
-        "total_customers"
-      ],
-      "preferred_for": [
-        "geographic_analysis",
-        "regional_analysis",
-        "location_analysis"
-      ],
-      "columns": [
-        {
-          "name": "purchase_date",
-          "semantic_type": "date",
-          "format": "YYYY-MM-DD"
-        },
-        {
-          "name": "customer_state",
-          "semantic_type": "location"
-        },
-        {
-          "name": "customer_city",
-          "semantic_type": "location"
-        },
-        {
-          "name": "total_revenue",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "total_orders",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "total_customers",
-          "semantic_type": "metric"
-        }
-      ]
-    },
-
-    {
-      "table_name": "gold.customer_retention",
-      "layer": "gold",
-      "description": "Customer repeat purchase and retention mart.",
-      "grain": "One row per customer_unique_id.",
-      "primary_dimensions": [
-        "customer_unique_id"
-      ],
-      "primary_metrics": [
-        "total_orders"
-      ],
-      "preferred_for": [
-        "retention_analysis",
-        "repeat_customer_analysis",
-        "customer_behavior"
-      ],
-      "columns": [
-        {
-          "name": "customer_unique_id",
-          "semantic_type": "business_identifier"
-        },
-        {
-          "name": "total_orders",
-          "semantic_type": "metric"
-        },
-        {
-          "name": "is_repeat_customer",
-          "semantic_type": "boolean",
-          "description": "True if customer has more than one distinct order."
-        }
-      ]
-    },
-
-    {
-      "table_name": "gold.operational_efficiency",
-      "layer": "gold",
-      "description": "Seller operational shipping and pricing efficiency mart.",
-      "grain": "One row per seller_id.",
-      "primary_dimensions": [
-        "seller_id"
-      ],
-      "primary_metrics": [
-        "average_freight_value",
-        "average_item_price",
-        "total_items_shipped"
-      ],
-      "preferred_for": [
-        "operational_analysis",
-        "seller_efficiency",
-        "shipping_analysis"
-      ],
-      "columns": [
-        {
-          "name": "seller_id",
-          "semantic_type": "business_identifier"
-        },
-        {
-          "name": "average_freight_value",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "average_item_price",
-          "semantic_type": "metric",
-          "unit": "BRL"
-        },
-        {
-          "name": "total_items_shipped",
-          "semantic_type": "metric"
-        }
+        {"name": "month_start_date", "semantic_type": "date"},
+        {"name": "total_revenue", "semantic_type": "metric"},
+        {"name": "total_orders", "semantic_type": "metric"}
       ]
     }
-
   ]
 }
