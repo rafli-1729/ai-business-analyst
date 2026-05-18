@@ -43,7 +43,7 @@ export default function AnalyticsWorkspace() {
     setArtifacts([]);
     setActiveAgents([]);
     try {
-      const response = await fetch('http://localhost:8000/analyze', {
+      const response = await fetch('https://', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
@@ -192,9 +192,9 @@ export default function AnalyticsWorkspace() {
                   return (
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2, overflow: 'hidden' }}>
                       {/* Card 1 */}
-                      <Paper sx={{ 
+                      <Paper sx={{
                         display: 'grid', gridTemplateColumns: '1.5fr 1fr', flex: 1,
-                        background: 'rgba(255, 255, 255, 0.03)', borderRadius: 3, 
+                        background: 'rgba(255, 255, 255, 0.03)', borderRadius: 3,
                         border: '1px solid rgba(255, 255, 255, 0.1)', overflow: 'hidden'
                       }}>
                         <Box sx={{ p: 2, overflowY: 'auto', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', maxHeight: '100%', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '3px' } }}>
@@ -209,9 +209,9 @@ export default function AnalyticsWorkspace() {
                       </Paper>
 
                       {/* Card 2 */}
-                      <Paper sx={{ 
+                      <Paper sx={{
                         display: 'grid', gridTemplateColumns: '1fr 1.5fr', flex: 1,
-                        background: 'rgba(255, 255, 255, 0.03)', borderRadius: 3, 
+                        background: 'rgba(255, 255, 255, 0.03)', borderRadius: 3,
                         border: '1px solid rgba(255, 255, 255, 0.1)', overflow: 'hidden'
                       }}>
                         <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
@@ -227,7 +227,7 @@ export default function AnalyticsWorkspace() {
                     </Box>
                   );
                 }
-                
+
                 // 1 Chart or Tables/Explanations Only
                 return (
                   <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2, overflow: 'hidden' }}>
@@ -241,12 +241,11 @@ export default function AnalyticsWorkspace() {
                         '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '3px' }
                     }}>
                       {explanations.map((exp, i) => <Box key={`exp-${i}`}>{renderExplanation(exp)}</Box>)}
-                      {charts.map((chart, i) => <Box key={`chart-${i}`} sx={{ flex: 1, minHeight: '300px', mt: 2 }}><ChartRenderer chartData={chart.content} /></Box>)}
+                      {charts.map((chart, i) => <Box key={`chart-${i}`} sx={{ height: '400px', mt: 2, flexShrink: 0 }}><ChartRenderer chartData={chart.content} /></Box>)}
                       {tables.map((tbl, i) => <Box key={`tbl-${i}`}>{renderTable(tbl)}</Box>)}
                     </Paper>
                   </Box>
-                );
-              })()
+                );              })()
             ) : (
               <Paper
                 sx={{
