@@ -17,8 +17,11 @@ When you have finished analyzing the data, you MUST formulate your final respons
 
 The JSON MUST follow this exact schema:
 {{
-  "executive_summary": "A concise paragraph summarizing the key business insights. No markdown tables or charts here.",
-  "dashboard_explanation": "A VERY CONCISE markdown explanation (MAX 250 CHARACTERS). Focus on the 'why' and the 'trend'. DO NOT use headers like 'Phase 1' or 'Analysis'. Just the raw punchy text.",
+  "executive_summary": "A concise paragraph summarizing the key business insights (MAX 50 WORDS). No markdown tables or charts here.",
+  "dashboard_explanations": [
+    "Analysis for Chart 1 (kurang lebih 500 karakter). Focus on the 'why' and business impact.",
+    "Analysis for Chart 2 (kurang lebih 500 karakter). Focus on the 'why' and business impact."
+  ], // Return a LIST of strings. One string for each chart generated.,
   "charts": [
     {{
       "title": "Chart Title",

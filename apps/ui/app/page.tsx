@@ -31,7 +31,8 @@ export default function AnalyticsWorkspace() {
     setArtifacts([]);
     setActiveAgents([]);
     try {
-      const response = await fetch('http://localhost:8000/analyze', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ai-business-analyst-sand.vercel.app';
+      const response = await fetch(`${apiUrl.replace(/\/$/, '')}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
@@ -81,33 +82,46 @@ export default function AnalyticsWorkspace() {
             ) : dashboardArtifacts.length > 0 ? (
               (() => {
                 const charts = dashboardArtifacts.filter(a => a.type === 'chart');
-                const nonCharts = dashboardArtifacts.filter(a => a.type !== 'chart');
-                
-                if (charts.length === 2) {
-                  const half = Math.ceil(nonCharts.length / 2);
-                  const firstHalf = nonCharts.slice(0, half);
-                  const secondHalf = nonCharts.slice(half);
+                const explanations = dashboardArtifacts.filter(a => a.type === 'dashboard_explanation');
+                const tables = dashboardArtifacts.filter(a => a.type === 'table');
 
+                const renderExplanation = (exp: any) => {
+                  if (!exp) return null;
+                  let content = exp.content;
+                  if (Array.isArray(content)) {
+                    content = content.join('\n\n');
+                  } else if (typeof content !== 'string') {
+                    content = JSON.stringify(content);
+                  }
+                  return (
+                    <Box sx={{ mb: 1 }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                    </Box>
+                  );
+                };
+
+                const renderTable = (tbl: any) => {
+                  if (!tbl) return null;
+                  return (
+                    <Box sx={{ overflow: 'hidden', mt: 2 }}>
+                      <MarkdownSummary content={tbl.content} />
+                    </Box>
+                  );
+                };
+
+                if (charts.length === 2) {
                   return (
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2, overflow: 'hidden' }}>
-                      {/* Card 1: Interpretation Left (Wider), Chart Right */}
+                      {/* Card 1 */}
                       <Paper sx={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1.5fr 1fr', 
-                        flex: 1,
-                        background: 'rgba(255, 255, 255, 0.03)', 
-                        borderRadius: 3, 
-                        border: '1px solid rgba(255, 255, 255, 0.1)', 
-                        overflow: 'hidden'
+                        display: 'grid', gridTemplateColumns: '1.5fr 1fr', flex: 1,
+                        background: 'rgba(255, 255, 255, 0.03)', borderRadius: 3, 
+                        border: '1px solid rgba(255, 255, 255, 0.1)', overflow: 'hidden'
                       }}>
-                        <Box sx={{ p: 2, overflow: 'hidden', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
-                          <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                            {firstHalf.map((artifact, i) => (
-                              <Box key={`nh1-${i}`} sx={{ mb: 1 }}>
-                                {artifact.type === 'dashboard_explanation' && <ReactMarkdown remarkPlugins={[remarkGfm]}>{artifact.content}</ReactMarkdown>}
-                                {artifact.type === 'table' && <Box sx={{ overflow: 'hidden' }}><MarkdownSummary content={artifact.content} /></Box>}
-                              </Box>
-                            ))}
+                        <Box sx={{ p: 2, overflowY: 'auto', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', maxHeight: '100%', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '3px' } }}>
+                          <Box sx={{ flex: 1 }}>
+                            {renderExplanation(explanations[0])}
+                            {renderTable(tables[0])}
                           </Box>
                         </Box>
                         <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -115,27 +129,19 @@ export default function AnalyticsWorkspace() {
                         </Box>
                       </Paper>
 
-                      {/* Card 2: Chart Left, Interpretation Right (Wider) */}
+                      {/* Card 2 */}
                       <Paper sx={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1fr 1.5fr', 
-                        flex: 1,
-                        background: 'rgba(255, 255, 255, 0.03)', 
-                        borderRadius: 3, 
-                        border: '1px solid rgba(255, 255, 255, 0.1)', 
-                        overflow: 'hidden'
+                        display: 'grid', gridTemplateColumns: '1fr 1.5fr', flex: 1,
+                        background: 'rgba(255, 255, 255, 0.03)', borderRadius: 3, 
+                        border: '1px solid rgba(255, 255, 255, 0.1)', overflow: 'hidden'
                       }}>
                         <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
                           <ChartRenderer chartData={charts[1].content} />
                         </Box>
-                        <Box sx={{ p: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                          <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                            {secondHalf.map((artifact, i) => (
-                              <Box key={`nh2-${i}`} sx={{ mb: 1 }}>
-                                {artifact.type === 'dashboard_explanation' && <ReactMarkdown remarkPlugins={[remarkGfm]}>{artifact.content}</ReactMarkdown>}
-                                {artifact.type === 'table' && <Box sx={{ overflow: 'hidden' }}><MarkdownSummary content={artifact.content} /></Box>}
-                              </Box>
-                            ))}
+                        <Box sx={{ p: 2, overflowY: 'auto', display: 'flex', flexDirection: 'column', maxHeight: '100%', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '3px' } }}>
+                          <Box sx={{ flex: 1 }}>
+                            {renderExplanation(explanations[1])}
+                            {renderTable(tables[1])}
                           </Box>
                         </Box>
                       </Paper>
@@ -143,30 +149,22 @@ export default function AnalyticsWorkspace() {
                   );
                 }
                 
+                // 1 Chart or Tables/Explanations Only
                 return (
                   <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2, overflow: 'hidden' }}>
-                    {dashboardArtifacts.map((artifact, i) => (
-                      <Paper key={i} sx={{ 
-                          p: 2, display: 'flex', flexDirection: 'column', 
-                          flex: 1,
-                          background: 'rgba(255, 255, 255, 0.03)',
-                          borderRadius: 3,
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          overflow: 'hidden'
-                      }}>
-                        {artifact.type === 'dashboard_explanation' && (
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{artifact.content}</ReactMarkdown>
-                        )}
-                        {artifact.type === 'chart' && (
-                          <ChartRenderer chartData={artifact.content} />
-                        )}
-                        {artifact.type === 'table' && (
-                          <Box sx={{ overflow: 'hidden' }}>
-                            <MarkdownSummary content={artifact.content} />
-                          </Box>
-                        )}
-                      </Paper>
-                    ))}
+                    <Paper sx={{ 
+                        p: 3, display: 'flex', flexDirection: 'column', 
+                        flex: 1,
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        borderRadius: 3,
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        overflowY: 'auto',
+                        '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '3px' }
+                    }}>
+                      {explanations.map((exp, i) => <Box key={`exp-${i}`}>{renderExplanation(exp)}</Box>)}
+                      {charts.map((chart, i) => <Box key={`chart-${i}`} sx={{ flex: 1, minHeight: '300px', mt: 2 }}><ChartRenderer chartData={chart.content} /></Box>)}
+                      {tables.map((tbl, i) => <Box key={`tbl-${i}`}>{renderTable(tbl)}</Box>)}
+                    </Paper>
                   </Box>
                 );
               })()

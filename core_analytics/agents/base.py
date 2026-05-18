@@ -51,12 +51,17 @@ def parse_agent_response(response_content: str, agent_name: str) -> List[AgentAr
             ))
             
         # 2. Dashboard Explanation
-        if data.get("dashboard_explanation"):
-            artifacts.append(AgentArtifact(
-                name=f"{agent_name} Dashboard Explanation",
-                type="dashboard_explanation",
-                content=data["dashboard_explanation"]
-            ))
+        explanations = data.get("dashboard_explanations") or data.get("dashboard_explanation")
+        if explanations:
+            if isinstance(explanations, str):
+                explanations = [explanations]
+            
+            for i, exp in enumerate(explanations):
+                artifacts.append(AgentArtifact(
+                    name=f"{agent_name} Interpretation {i+1}",
+                    type="dashboard_explanation",
+                    content=str(exp)
+                ))
             
         # 3. Charts
         charts = data.get("charts", [])
