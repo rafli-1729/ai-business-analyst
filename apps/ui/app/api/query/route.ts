@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     next_api_read_body_ms: elapsedMs(bodyStartedAt),
   };
   const demoMode = process.env.ANALYTICS_DEMO_MODE === "true";
-  const apiUrl = process.env.ANALYTICS_API_URL ?? "http://localhost:8000";
+  const apiUrl = process.env.ANALYTICS_API_URL ?? "https://ai-business-analyst-sand.vercel.app/";
 
   if (demoMode) {
     timings.next_api_total_ms = elapsedMs(routeStartedAt);
