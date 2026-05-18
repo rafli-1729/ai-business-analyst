@@ -43,7 +43,8 @@ export default function AnalyticsWorkspace() {
     setArtifacts([]);
     setActiveAgents([]);
     try {
-      const response = await fetch('https://', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ai-business-analyst-sand.vercel.app';
+      const response = await fetch(`${apiUrl.replace(/\/$/, '')}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
@@ -51,12 +52,13 @@ export default function AnalyticsWorkspace() {
       const data = await response.json();
       setArtifacts(data.summary || []);
       setActiveAgents(data.active_agents || []);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Fetch Error:", error);
       setArtifacts([
         {
           name: "Error",
           type: "executive_summary",
-          content: "Failed to connect to analytics engine.",
+          content: `Failed to connect to analytics engine. Details: ${error.message || error}`,
         },
       ]);
     } finally {
