@@ -1,9 +1,9 @@
 import uuid
-import logging
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
+from typing import Dict, Iterable, Optional
 
 from sqlalchemy import text
 
@@ -64,7 +64,7 @@ def _record_elt_run(
     status: str,
     executed_files: Iterable[str],
     started_at: datetime,
-    quality_issue_count: int | None = None,
+    quality_issue_count: Optional[int] = None,
 ) -> None:
     finished_at = datetime.now(timezone.utc) if status in {"success", "failed"} else None
 

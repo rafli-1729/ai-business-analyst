@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
@@ -11,7 +12,7 @@ class DatabaseExecutor:
     def __init__(self, db_url: str):
         self.engine = create_engine(db_url, connect_args={"sslmode": "require"})
 
-    def run_select_query(self, sql: str, limit: int | None = None) -> pd.DataFrame:
+    def run_select_query(self, sql: str, limit: Optional[int] = None) -> pd.DataFrame:
         bounded_sql = sql
         params = {}
 
