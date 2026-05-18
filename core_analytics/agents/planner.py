@@ -86,7 +86,7 @@ def synthesizer_node(state: AgentState):
     else:
         llm = LLMClient().get_llm()
         combined_text = "\n\n".join(f"- {s}" for s in summaries)
-        prompt = f"You are the Lead Executive Analyst. Synthesize the following insights from various domain experts into EXACTLY ONE cohesive, punchy executive summary paragraph (max 4-5 sentences):\n\n{combined_text}"
+        prompt = f"You are the Lead Executive Analyst. Synthesize the following insights from various domain experts into EXACTLY ONE cohesive, punchy executive summary paragraph (MAX 50 WORDS TOTAL):\n\n{combined_text}"
         response = llm.invoke([SystemMessage(content=prompt)])
         final_text = response.content
         
