@@ -94,7 +94,7 @@ def parse_agent_response(response_content: str, agent_name: str, df_records: lis
         if isinstance(charts, dict): charts = [charts]
         
         for i, chart_spec in enumerate(charts[:1]): # Limit to 1 chart per task
-            if chart_spec and isinstance(chart_spec, dict) and sanitized_records:
+            if chart_spec and isinstance(chart_spec, dict) and sanitized_records is not None:
                 chart_spec["data"] = sanitized_records
                 artifacts.append(AgentArtifact(
                     name=chart_spec.get("title", f"{agent_name} Chart {i+1}"),
@@ -171,9 +171,10 @@ async def run_direct_chain(query: str, schema_context: str, agent_name: str, llm
     try:
         with open("contracts/prompts/insight_generation.txt", "r") as f:
             insight_prompt_template = f.read()
-        insight_system_prompt = insight_prompt_template.format(query=optimized_query, sql=sql_query, data=data_str)
+        # Remove optimized_query here to avoid confusing the LLM during JSON generation
+        insight_system_prompt = insight_prompt_template.format(query=query, sql=sql_query, data=data_str)
     except Exception:
-        insight_system_prompt = f"Generate JSON insights for query: {optimized_query}\nData:\n{data_str}"
+        insight_system_prompt = f"Generate JSON insights for query: {query}\nData:\n{data_str}"
         
     insight_response = await llm.ainvoke([SystemMessage(content=insight_system_prompt)])
     
