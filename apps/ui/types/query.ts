@@ -11,5 +11,4 @@ export type QueryResponse = {
   is_truncated: boolean;
   cache_hit: boolean;
   sql_cache_hit: boolean;
-  timings: Record<string, number>;
 };

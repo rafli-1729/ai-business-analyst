@@ -1,11 +1,12 @@
-const API_URL = "https://ai-business-analyst-sand.vercel.app";
+import { getApiUrl } from "./api-config";
 
 export async function askQuestion(
   question: string
 ) {
+  const API_URL = getApiUrl();
   const response = await fetch(
     `${API_URL}/api/query`,
-    {
+...
       method: "POST",
       headers: {
         "Content-Type": "application/json",
