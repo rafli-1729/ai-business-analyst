@@ -65,7 +65,7 @@ class GoogleSheetsSource(BaseSource):
                 elif expected_count is not None and new_row_count < expected_count:
                     logger.warning(f"Data for {table_name} has fewer rows ({new_row_count}) than expected ({expected_count}).")
                     # Still update local cache if you want current version, or stay with old one.
-                    # Given the request "kalo file belum ada atau ada tambahan", we update only if more rows.
+                    # Given the request "if file does not exist or there are additions", we update only if more rows.
                 else:
                     logger.info(f"No new data detected for {table_name}. Skipping local cache update.")
 

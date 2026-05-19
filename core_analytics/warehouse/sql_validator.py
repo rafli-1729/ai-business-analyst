@@ -5,7 +5,7 @@ Extracts SQL validation logic from sql_guard.
 Provides read-only validation and extraction.
 """
 
-from ai.services.sql_guard import (
+from core_analytics.analytics.sql_guard import (
     validate_sql_is_read_only,
     SqlValidationError,
 )

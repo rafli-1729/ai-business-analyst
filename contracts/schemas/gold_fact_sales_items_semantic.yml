@@ -4,48 +4,74 @@ columns:
   order_item_key:
     type: TEXT
     description: Unique identifier for each item in an order.
-    examples: ['oi123', 'oi124', 'oi125', 'oi126', 'oi127']
+    examples: ["000229ec398224ef6ca0657da4fc703e-1"]
   order_id:
     type: TEXT
     description: Identifier for the order.
-    examples: ['o1', 'o2', 'o3', 'o4', 'o5']
+    examples: ["000229ec398224ef6ca0657da4fc703e"]
+  order_status:
+    type: TEXT
+    description: Status of the order (delivered, canceled, etc). Filter by 'delivered' for revenue.
+    examples: ["delivered", "shipped", "canceled"]
   order_purchase_timestamp:
     type: TIMESTAMP
-    description: Date and time the order was placed. Use for time-based filtering.
-    examples: ['2024-01-01 10:00:00', '2024-01-02 11:30:00', '2024-01-03 09:15:00', '2024-01-04 14:20:00', '2024-01-05 16:45:00']
+    description: Date and time the order was placed.
   product_id:
     type: TEXT
     description: Identifier for the product.
-    examples: ['p1', 'p2', 'p3', 'p4', 'p5']
+    examples: ["c777355d18b72b67abbeef9df44fd0fd"]
   product_category_name:
     type: TEXT
-    description: Normalized product category name in English.
-    examples: ['health', 'electronics', 'health', 'sports', 'electronics']
+    description: Normalized product category name in English (Olist categories).
+    examples: ["Moveis Decoracao", "Ferramentas Jardim", "Beleza Saude", "Perfumaria", "Esporte Lazer"]
+  product_weight_g:
+    type: NUMERIC
+    description: Weight of the product in grams.
+  product_length_cm:
+    type: NUMERIC
+    description: Length of the product.
+  product_height_cm:
+    type: NUMERIC
+    description: Height of the product.
+  product_width_cm:
+    type: NUMERIC
+    description: Width of the product.
   seller_id:
     type: TEXT
     description: Identifier for the seller.
-    examples: ['s1', 's2', 's3', 's4', 's5']
+    examples: ["5b51032eddd242adc84c38acab88f23d"]
+  seller_city:
+    type: TEXT
+    description: City name where the seller is located.
+    examples: ["Borda Da Mata", "Presidente Prudente", "Santo Andre"]
   seller_state:
     type: TEXT
-    description: Two-letter Brazilian state code of the seller.
-    examples: ['SP', 'RJ', 'SP', 'MG', 'SP']
+    description: Two-letter Brazilian state code (UF) of the seller.
+    examples: ["MG", "SP", "SC", "PR", "RS"]
   customer_id:
     type: TEXT
     description: Identifier for the customer.
-    examples: ['c1', 'c2', 'c3', 'c4', 'c5']
+  customer_city:
+    type: TEXT
+    description: City name of the buyer (UTF-8 normalized, no accents).
+    examples: ["Para De Minas", "Praia Grande", "Piracicaba", "Sao Paulo"]
   customer_state:
     type: TEXT
-    description: Two-letter Brazilian state code of the buyer.
-    examples: ['SP', 'RJ', 'SP', 'MG', 'SP']
+    description: Two-letter Brazilian state code (UF) of the buyer.
+    examples: ["MG", "SP", "BA", "DF", "RS", "RJ"]
+  payment_type:
+    type: TEXT
+    description: The primary payment method used for the order.
+    examples: ["credit_card", "boleto", "voucher", "debit_card"]
+  payment_installments:
+    type: INTEGER
+    description: Number of installments chosen for the payment.
   price:
     type: NUMERIC
     description: Selling price of the product item.
-    examples: [45.0, 110.0, 75.0, 190.0, 40.0]
   freight_value:
     type: NUMERIC
     description: Shipping cost for the product item.
-    examples: [5.0, 10.5, 5.0, 10.0, 5.0]
   total_value:
     type: NUMERIC
     description: Gross value (Price + Freight). Use this for total revenue calculations.
-    examples: [50.0, 120.5, 80.0, 200.0, 45.0]

@@ -1,5 +1,9 @@
 """
-Usage Examples for Refactored AI Analytics Platform
+Usage Examples for AI Analytics Platform
+
+> **IMPORTANT NOTE:** These examples mostly describe the **target architecture** (ai/ package). 
+> The current active implementation uses the `core_analytics/` package.
+> See the end of this document for current usage examples.
 
 # BASIC QUERY EXECUTION
 
@@ -25,7 +29,7 @@ row_limit=100,
 print(f"SQL: {result.sql}")
 print(f"Rows: {result.dataframe.head()}")
 print(f"Summary: {result.summary}")
-print(f"Timings: {result.timings}")
+print(f"Active Agents: {result.active_agents}")
 
 # Example 2: Using agents directly
 
@@ -128,7 +132,7 @@ KEY DIFFERENCES:
 
 - Old: ask() returns tuple (sql, df)
 - New: execute_query() returns ExecutionResult object
-- New: More metadata available (timings, cache_hit, summary, etc.)
+- New: More metadata available (cache_hit, summary, etc.)
 - New: Clearer separation of concerns
 - New: Better for testing and extension
   """

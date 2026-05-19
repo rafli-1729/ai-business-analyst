@@ -7,7 +7,7 @@ class AnalyticsEngine:
         self.synthesizer = ArtifactSynthesizer()
 
     async def run(self, user_query: str):
-        # 1. Planner Agent melakukan dekomposisi dan eksekusi paralel
+        # 1. Planner Agent performs decomposition and parallel execution
         return await self.planner.decompose_and_execute(user_query)
 
 analytics_engine = AnalyticsEngine()

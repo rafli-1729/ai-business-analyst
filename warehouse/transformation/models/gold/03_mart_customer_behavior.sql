@@ -4,6 +4,7 @@
 
 CREATE UNLOGGED TABLE IF NOT EXISTS gold.mart_customer_behavior (
     customer_unique_id TEXT PRIMARY KEY,
+    customer_city TEXT,
     customer_state TEXT,
     first_purchase_at TIMESTAMP,
     latest_purchase_at TIMESTAMP,
@@ -19,6 +20,7 @@ CREATE UNLOGGED TABLE IF NOT EXISTS gold.mart_customer_behavior (
 CREATE TEMP TABLE stg_customer_behavior AS
 SELECT 
     c.customer_unique_id,
+    MAX(c.customer_city) as customer_city,
     MAX(c.customer_state) as customer_state,
     MIN(o.order_purchase_timestamp) as first_purchase_at,
     MAX(o.order_purchase_timestamp) as latest_purchase_at,
@@ -34,7 +36,7 @@ GROUP BY 1;
 
 -- Upsert
 INSERT INTO gold.mart_customer_behavior (
-    customer_unique_id, customer_state, first_purchase_at, latest_purchase_at,
+    customer_unique_id, customer_city, customer_state, first_purchase_at, latest_purchase_at,
     total_orders, total_items_bought, total_lifetime_value, avg_order_value,
     is_repeat_customer, _last_updated_at
 )
@@ -48,5 +50,6 @@ ON CONFLICT (customer_unique_id) DO UPDATE SET
 
 -- Column Comments
 COMMENT ON TABLE gold.mart_customer_behavior IS 'Customer-centric mart for retention and LTV analysis. Use this for repeat buyer statistics.';
+COMMENT ON COLUMN gold.mart_customer_behavior.customer_city IS 'City name of the buyer.';
 COMMENT ON COLUMN gold.mart_customer_behavior.total_lifetime_value IS 'Total amount spent by the customer across all orders including freight.';
 COMMENT ON COLUMN gold.mart_customer_behavior.is_repeat_customer IS 'Indicates if the customer has made more than one purchase.';

@@ -1,6 +1,7 @@
 import pandas as pd
 
-from ai.services.result_formatter import dataframe_to_rows, infer_chart_type
+from core_analytics.analytics.result_formatter import dataframe_to_rows
+from core_analytics.visualization.charts import infer_chart_type
 
 
 def test_dataframe_to_rows_replaces_nan_with_none():

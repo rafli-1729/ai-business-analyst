@@ -1,41 +1,51 @@
 """
-Refactoring Status and Next Steps
+# Refactoring Status and Next Steps
 
-# COMPLETED WORK
+> **IMPORTANT NOTE:** This document describes a target architecture that is currently in the planning and design phase. 
+> The active implementation of the system resides in the `core_analytics/` package and utilizes a LangGraph-based orchestration model.
+> The `ai/` package and `AnalyticalOrchestrator` mentioned below are part of the next-generation platform roadmap.
 
-✓ PHASE 1: Core Architecture Foundation
-✓ Created typed models (AnalyticalContext, ExecutionResult, QueryPlan)
-✓ Implemented SchemaContextProvider
-✓ Implemented SqlValidator wrapper
-✓ Implemented SqlExecutor wrapper
-✓ Implemented PromptComposer for modular prompting
-✓ Implemented SqlRepairService for validation/repair
-✓ Implemented ResponseFormatterService
-✓ Implemented SummarizationService
-✓ Created BaseAnalyticalAgent abstract class
-✓ Implemented AgentRegistry with pattern-based lookup
-✓ Implemented AnalyticalOrchestrator (main coordinator)
+# COMPLETED WORK (PHASE 0: Foundation)
+✓ LangGraph-based Agent Orchestration
+✓ Domain agents (Sales, Geo, Customer, etc.)
+✓ Basic SQL Generation & Execution
+✓ Initial Semantic Layer Loader
+✓ FastAPI / Next.js Integration
 
-✓ PHASE 2: Agent Architecture
-✓ Created BaseAnalyticalAgent with clear contract
-✓ Refactored DiagnosticAgent to use base class
-✓ Refactored TrendAgent to use base class
-✓ Refactored RankerAgent to use base class
-✓ Created SalesAgent with specialized prompting
-✓ Created GeographyAgent with specialized prompting
-✓ Created CustomerAgent with specialized prompting
-✓ Created RetentionAgent with specialized prompting
-✓ Created OperationsAgent with specialized prompting
-✓ Created agent initialization module
+# PLANNED WORK (PHASE 1: Core Architecture Foundation)
+[ ] Created typed models (AnalyticalContext, ExecutionResult, QueryPlan)
+[ ] Implemented SchemaContextProvider
+[ ] Implemented SqlValidator wrapper
+[ ] Implemented SqlExecutor wrapper
+[ ] Implemented PromptComposer for modular prompting
+[ ] Implemented SqlRepairService for validation/repair
+[ ] Implemented ResponseFormatterService
+[ ] Implemented SummarizationService
+[ ] Created BaseAnalyticalAgent abstract class
+[ ] Implemented AgentRegistry with pattern-based lookup
+[ ] Implemented AnalyticalOrchestrator (main coordinator)
 
-✓ PHASE 3: Services & API Integration
-✓ Implemented PromptComposer
-✓ Implemented SqlRepairService
-✓ Implemented ResponseFormatterService
-✓ Implemented SummarizationService
-✓ Updated API dependencies to use AnalyticalOrchestrator
-✓ Refactored /query route to use orchestrator
-✓ All imports validated and working
+
+# PLANNED WORK (PHASE 2: Agent Architecture)
+[ ] Created BaseAnalyticalAgent with clear contract
+[ ] Refactored DiagnosticAgent to use base class
+[ ] Refactored TrendAgent to use base class
+[ ] Refactored RankerAgent to use base class
+[ ] Created SalesAgent with specialized prompting
+[ ] Created GeographyAgent with specialized prompting
+[ ] Created CustomerAgent with specialized prompting
+[ ] Created RetentionAgent with specialized prompting
+[ ] Created OperationsAgent with specialized prompting
+[ ] Created agent initialization module
+
+# PLANNED WORK (PHASE 3: Services & API Integration)
+[ ] Implemented PromptComposer
+[ ] Implemented SqlRepairService
+[ ] Implemented ResponseFormatterService
+[ ] Implemented SummarizationService
+[ ] Updated API dependencies to use AnalyticalOrchestrator
+[ ] Refactored /query route to use orchestrator
+[ ] All imports validated and working
 
 ✓ PHASE 4: Documentation
 ✓ Created comprehensive architecture document

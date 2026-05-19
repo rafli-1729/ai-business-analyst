@@ -1,4 +1,4 @@
-from ai.summarization.narrative import remove_markdown_tables, summarize_query_result
+from core_analytics.analytics.summarization import remove_markdown_tables, summarize_query_result
 
 
 class FakeLlm:

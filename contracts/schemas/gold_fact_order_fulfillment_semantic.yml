@@ -1,43 +1,64 @@
 table: gold.fact_order_fulfillment
-description: Logistics performance table for orders.
+description: Table focused on order fulfillment, delivery performance, and customer satisfaction.
 columns:
   order_id:
     type: TEXT
     description: Identifier for the order.
-    examples: ['o1', 'o2', 'o3', 'o4', 'o5']
+    examples: ["000229ec398224ef6ca0657da4fc703e"]
   customer_unique_id:
     type: TEXT
-    description: Unique identifier for the customer.
-    examples: ['cu1', 'cu2', 'cu3', 'cu4', 'cu5']
+    description: Unique identifier for the customer (across multiple orders).
+    examples: ["3818d81c6709e39d06b2738a8d3a2474"]
+  customer_city:
+    type: TEXT
+    description: City name of the buyer (UTF-8 normalized, no accents).
+    examples: ["Sao Paulo", "Rio de Janeiro", "Curitiba"]
+  customer_state:
+    type: TEXT
+    description: Two-letter Brazilian state code (UF) of the buyer.
+    examples: ["SP", "RJ", "MG", "RS", "PR", "BA"]
+  seller_id:
+    type: TEXT
+    description: Identifier for the seller.
+  seller_city:
+    type: TEXT
+    description: City name of the seller.
+  seller_state:
+    type: TEXT
+    description: Two-letter Brazilian state code (UF) of the seller.
   order_status:
     type: TEXT
     description: Current status of the order.
-    examples: ['delivered', 'shipped', 'processing', 'delivered', 'delivered']
+    examples: ["delivered", "shipped", "canceled", "invoiced", "processing"]
   order_purchase_timestamp:
     type: TIMESTAMP
-    description: Date and time the order was placed.
-    examples: ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05']
+    description: Timestamp of when the order was placed.
+  order_approved_at:
+    type: TIMESTAMP
+    description: Timestamp of payment approval.
+  order_delivered_carrier_date:
+    type: TIMESTAMP
+    description: Timestamp of when the order was handed to the carrier.
   order_delivered_customer_date:
     type: TIMESTAMP
-    description: Date the order was delivered.
-    examples: ['2024-01-05', '2024-01-07', '2024-01-05', '2024-01-12', '2024-01-09']
+    description: Timestamp of actual delivery to the customer.
   order_estimated_delivery_date:
     type: TIMESTAMP
-    description: Estimated delivery date.
-    examples: ['2024-01-06', '2024-01-08', '2024-01-06', '2024-01-10', '2024-01-10']
+    description: Estimated delivery date promised to the customer.
   delivery_days_actual:
     type: INTEGER
-    description: Actual days taken from purchase to delivery.
-    examples: [4, 5, 2, 8, 4]
+    description: Actual days between purchase and delivery.
   delivery_days_estimated:
     type: INTEGER
-    description: Estimated days for delivery.
-    examples: [5, 6, 3, 6, 5]
+    description: Estimated days for delivery at the time of purchase.
+  processing_days:
+    type: INTEGER
+    description: Days between purchase and carrier pickup.
   is_late_delivery:
     type: BOOLEAN
-    description: Flag indicating if delivery was late.
-    examples: [false, false, false, true, false]
+    description: Flag indicating if the actual delivery happened after the estimated date.
+    examples: [true, false]
   review_score:
     type: INTEGER
-    description: Customer satisfaction rating (1-5).
-    examples: [5, 4, 5, 2, 4]
+    description: Satisfaction score provided by the customer (1 to 5).
+    examples: [1, 2, 3, 4, 5]

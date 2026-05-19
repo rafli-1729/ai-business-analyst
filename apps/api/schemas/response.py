@@ -19,4 +19,3 @@ class QueryResponse(BaseModel):
     is_truncated: bool = False
     cache_hit: bool = False
     sql_cache_hit: bool = False
-    timings: dict[str, int] = Field(default_factory=dict)

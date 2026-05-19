@@ -1,15 +1,12 @@
 from functools import lru_cache
-
 from infra.config.settings import get_settings
-from ai.orchestrators.analytical_orchestrator import AnalyticalOrchestrator
-from ai.caches.response_cache import ResponseCache
-
+from core_analytics.analytics.engine import AnalyticsEngine
+from core_analytics.analytics.cache import ResponseCache
 
 @lru_cache(maxsize=1)
-def get_orchestrator() -> AnalyticalOrchestrator:
-    """Get or create analytical orchestrator singleton."""
-    return AnalyticalOrchestrator(get_settings())
-
+def get_orchestrator() -> AnalyticsEngine:
+    """Get or create analytics engine singleton."""
+    return AnalyticsEngine()
 
 @lru_cache(maxsize=1)
 def get_response_cache() -> ResponseCache:

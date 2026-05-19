@@ -3,9 +3,9 @@ import sys
 import time
 
 def setup_logging():
-    """Configures a standardized logger."""
+    """Configures a standardized logger with high-precision timestamps."""
     log_formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(message)s",
+        "%(asctime)s.%(msecs)03d | %(levelname)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
     root_logger = logging.getLogger()
@@ -23,3 +23,10 @@ def setup_logging():
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
     return root_logger
+
+
+def log_event(event_name: str, **kwargs):
+    """Logs an application event with metadata."""
+    logger = logging.getLogger("app.events")
+    metadata = " | ".join([f"{k}={v}" for k, v in kwargs.items()])
+    logger.info(f"EVENT: {event_name} | {metadata}")

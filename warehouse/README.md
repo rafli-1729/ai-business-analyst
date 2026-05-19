@@ -1,76 +1,76 @@
-# Ringkasan Alur Kerja Warehouse
+# Warehouse Workflow Summary
 
-Arsitektur ini mengikuti model Medallion (Bronze, Silver, Gold) yang terstruktur dengan baik, menggunakan kombinasi skrip Python untuk ingesti dan proyek dbt untuk transformasi.
+This architecture follows a well-structured Medallion model (Bronze, Silver, Gold), using a combination of Python scripts for ingestion and dbt projects for transformation.
 
 ---
 
-# 1. Ingesti (Layer Bronze)
+# 1. Ingestion (Bronze Layer)
 
-Tujuan dari layer ini adalah mendapatkan salinan data mentah dari berbagai sumber ke dalam warehouse.
+The goal of this layer is to obtain raw data copies from various sources into the warehouse.
 
-* **Sumber Data:**
-  Data berasal dari berbagai sumber yang didefinisikan di `warehouse/ingestion/registry.json`:
+* **Data Sources:**
+  Data comes from various sources defined in `warehouse/ingestion/registry.json`:
 
-  * Google Sheets: `customers`, `products`, `orders`, `order_items`, dll.
+  * Google Sheets: `customers`, `products`, `orders`, `order_items`, etc.
   * Kaggle: `geolocation`.
-  * File CSV Lokal: `geography_master` dan `product_category_mapping`.
+  * Local CSV Files: `geography_master` and `product_category_mapping`.
 
-* **Proses:**
-  Proses ingesti diatur oleh Dagster. Untuk setiap tabel, data diambil dan dimuat ke dalam tabel staging di PostgreSQL. Dari sana, data dimasukkan ke dalam skema bronze dengan tipe data yang sudah disesuaikan. Ini menciptakan salinan data sumber yang mentah namun sudah terstruktur.
+* **Process:**
+  The ingestion process is orchestrated by Dagster. For each table, data is fetched and loaded into staging tables in PostgreSQL. From there, data is inserted into the bronze schema with adjusted data types. This creates raw but structured source data copies.
 
 ---
 
-# 2. Transformasi & Standardisasi (Layer Silver)
+# 2. Transformation & Standardization (Silver Layer)
 
-Tujuan dari layer ini adalah membersihkan, menstandardisasi, dan menyiapkan data untuk analisis. Transformasi dilakukan menggunakan model SQL di dalam proyek dbt pada:
+The goal of this layer is to clean, standardize, and prepare data for analysis. Transformations are performed using SQL models within the dbt project at:
 
 ```text
 warehouse/transformation/models/silver/
 ```
 
-## Standardisasi Utama yang Dilakukan
+## Key Standardizations Performed
 
-* **Pembersihan Data:**
+* **Data Cleaning:**
 
-  * Menghapus spasi kosong di awal/akhir teks (menggunakan `TRIM`).
-  * Mengubah string kosong (`''`) menjadi nilai `NULL` untuk konsistensi.
+  * Removing leading/trailing whitespace (using `TRIM`).
+  * Converting empty strings (`''`) to `NULL` for consistency.
 
-* **Penyesuaian Tipe Data:**
+* **Data Type Adjustments:**
 
-  * Memastikan semua data secara eksplisit diubah ke tipe data yang benar (misalnya, `INTEGER`, `NUMERIC`, `TIMESTAMP`).
+  * Ensuring all data is explicitly converted to the correct data types (e.g., `INTEGER`, `NUMERIC`, `TIMESTAMP`).
 
-* **Normalisasi Nilai:**
+* **Value Normalization:**
 
-  * **Geografi:**
-    Nama kota dan negara bagian distandardisasi dengan menggabungkannya dengan tabel `master.geography_master` untuk mendapatkan nama kanonis.
+  * **Geography:**
+    City and state names are standardized by joining with the `master.geography_master` table to obtain canonical names.
 
-  * **Kategori Produk:**
-    Nama kategori produk diterjemahkan ke Bahasa Inggris dan distandardisasi menggunakan tabel `reference.product_category_mapping`.
+  * **Product Category:**
+    Product category names are translated to English and standardized using the `reference.product_category_mapping` table.
 
-* **Deduplikasi:**
+* **Deduplication:**
 
-  * Data duplikat dihapus dari beberapa tabel (seperti `customers`) berdasarkan kunci unik untuk memastikan setiap entitas hanya ada satu kali.
+  * Duplicate data is removed from several tables (such as `customers`) based on unique keys to ensure each entity exists only once.
 
 ---
 
-# 3. Model Analitik (Layer Gold)
+# 3. Analytical Models (Gold Layer)
 
-Layer ini merupakan produk akhir dari warehouse: tabel yang siap untuk analisis bisnis dan pelaporan. Tabel-tabel ini bersifat "lebar" (*denormalized*) dan dibuat dengan menggabungkan beberapa tabel dari layer silver.
+This layer is the final product of the warehouse: tables ready for business analysis and reporting. These tables are "wide" (denormalized) and created by joining several tables from the silver layer.
 
-## Tabel yang Dibuat di Layer Gold
+## Tables Created in the Gold Layer
 
 1. **`gold.fact_sales_items`**
 
-   * Tujuan: Tabel fakta terperinci, di mana setiap baris mewakili satu item dalam pesanan. Tabel ini menggabungkan data pesanan, produk, penjual, dan pelanggan untuk memungkinkan analisis pendapatan, kinerja produk, dan penjualan geografis.
+   * Purpose: Detailed fact table, where each row represents one item in an order. This table joins order, product, seller, and customer data to enable revenue, product performance, and geographic sales analysis.
 
 2. **`gold.fact_order_fulfillment`**
 
-   * Tujuan: Tabel fakta yang berfokus pada logistik, dengan satu baris per pesanan. Tabel ini menghitung metrik seperti waktu pengiriman aktual (`delivery_days_actual`) dan status keterlambatan (`is_late_delivery`), serta menggabungkannya dengan data ulasan untuk mengukur kepuasan pelanggan.
+   * Purpose: Fact table focused on logistics, with one row per order. This table calculates metrics such as actual delivery time (`delivery_days_actual`) and late delivery status (`is_late_delivery`), and joins them with review data to measure customer satisfaction.
 
 3. **`gold.mart_customer_behavior`**
 
-   * Tujuan: Data mart yang berpusat pada pelanggan, dengan satu baris per pelanggan unik. Tabel ini menghitung metrik penting seperti lifetime value (`LTV`), frekuensi pesanan, dan perilaku pembelian berulang.
+   * Purpose: Customer-centric data mart, with one row per unique customer. This table calculates key metrics such as lifetime value (`LTV`), order frequency, and repeat purchase behavior.
 
 4. **`gold.mart_monthly_performance`**
 
-   * Tujuan: Data mart agregat bulanan tingkat tinggi yang dirancang untuk pelaporan eksekutif. Tabel ini melacak metrik utama seperti `total_revenue`, `total_orders`, dan `total_customers` dari waktu ke waktu.
+   * Purpose: High-level monthly aggregate data mart designed for executive reporting. This table tracks key metrics such as `total_revenue`, `total_orders`, and `total_customers` over time.

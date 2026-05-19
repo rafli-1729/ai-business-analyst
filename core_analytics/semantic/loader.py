@@ -18,7 +18,11 @@ def load_all_semantic_definitions() -> str:
         with open(yaml_file, "r") as f:
             data = yaml.safe_load(f)
             table_name = data.get('table', 'unknown')
-            columns = ", ".join(data.get('columns', {}).keys())
-            context += f"Table: {table_name} | Columns: {columns}\n"
+            context += f"\nTable: {table_name}\nColumns:\n"
+            for col_name, col_meta in data.get('columns', {}).items():
+                desc = col_meta.get('description', '')
+                examples = col_meta.get('examples', [])
+                example_str = f" | Examples: {examples}" if examples else ""
+                context += f"- {col_name}: {desc}{example_str}\n"
     
     return context

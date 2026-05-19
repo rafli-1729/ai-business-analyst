@@ -1,4 +1,4 @@
-from ai.caches.response_cache import ResponseCache
+from core_analytics.analytics.cache import ResponseCache
 
 
 def test_response_cache_uses_response_version_in_key():

@@ -1,0 +1,20 @@
+[
+  {
+    "question": "What is the total revenue?",
+    "expected_sql": "SELECT SUM(price + freight_value) AS total_revenue FROM gold.fact_sales_items;",
+    "domain": "sales",
+    "intent": "aggregation"
+  },
+  {
+    "question": "Which product category has the highest sales volume?",
+    "expected_sql": "SELECT product_category_name, COUNT(*) as sales_volume FROM gold.fact_sales_items GROUP BY product_category_name ORDER BY sales_volume DESC LIMIT 1;",
+    "domain": "products",
+    "intent": "ranking"
+  },
+  {
+    "question": "Show me the top 7 states by customer count.",
+    "expected_sql": "SELECT customer_state, COUNT(DISTINCT customer_id) as customer_count FROM gold.mart_customer_behavior GROUP BY customer_state ORDER BY customer_count DESC LIMIT 7;",
+    "domain": "geography",
+    "intent": "ranking"
+  }
+]

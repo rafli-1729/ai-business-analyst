@@ -13,7 +13,7 @@ logger = setup_logging()
 import json
 
 def load_reference_seeds(ingestor):
-    """Memuat file seed dari warehouse/transformation/seeds ke schema yang sesuai (reference/master)."""
+    """Load seed files from warehouse/transformation/seeds to the appropriate schema (reference/master)."""
     logger.info("Loading reference seeds into database...")
     seed_source = LocalSeedSource()
     seeds = seed_source.list_csv_files(Path("."))
@@ -31,12 +31,12 @@ def load_reference_seeds(ingestor):
             
         target_schema = config.get("target_schema", "reference")
         
-        # Ingest ke schema yang sesuai
+        # Ingest into the appropriate schema
         ingestor.ingest_file(
             source_path=seed_path,
             table_name=table_name,
             target_schema=target_schema,
-            total_rows=0 # Tidak perlu row count strict untuk seed
+            total_rows=0 # No strict row count needed for seeds
         )
     logger.info("Reference seeds loaded.")
 
@@ -52,7 +52,7 @@ def run_ingestion_with_validation():
 
     results = ingestor.ingest_dataset()
 
-    # ... sisa logic ...
+    # ... remaining logic ...
 
     all_passed = True
     for result in results:
