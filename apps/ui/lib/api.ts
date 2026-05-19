@@ -6,7 +6,7 @@ export async function askQuestion(
   const API_URL = getApiUrl();
   const response = await fetch(
     `${API_URL}/api/query`,
-...
+    {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

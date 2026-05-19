@@ -121,7 +121,10 @@ def parse_agent_response(response_content: str, agent_name: str, df_records: lis
     return artifacts
 
 async def run_direct_chain(query: str, schema_context: str, agent_name: str, llm, sql_executor, skill_context: str = "") -> dict:
-    """Runs a direct 2-step chain (LLM -> SQL -> LLM) instead of ReAct loop for massive latency reduction."""
+    """Runs a direct 2-step chain (LLM -> SQL -> LLM) with double-query optimization."""
+    
+    # Optimization: Repeat query twice for better LLM comprehension/attention
+    optimized_query = f"{query} {query}"
     
     start_total = time.time()
     # --- Step 1: SQL Generation ---
@@ -129,7 +132,7 @@ async def run_direct_chain(query: str, schema_context: str, agent_name: str, llm
     try:
         with open("contracts/prompts/sql_generation.txt", "r") as f:
             sql_prompt_template = f.read()
-        sql_system_prompt = sql_prompt_template.format(schema_context=schema_context, query=query)
+        sql_system_prompt = sql_prompt_template.format(schema_context=schema_context, query=optimized_query)
     except Exception:
         sql_system_prompt = f"Write a raw PostgreSQL SELECT query for: {query}\nSchema:\n{schema_context}\nReturn ONLY the raw SQL."
 
@@ -168,9 +171,9 @@ async def run_direct_chain(query: str, schema_context: str, agent_name: str, llm
     try:
         with open("contracts/prompts/insight_generation.txt", "r") as f:
             insight_prompt_template = f.read()
-        insight_system_prompt = insight_prompt_template.format(query=query, sql=sql_query, data=data_str)
+        insight_system_prompt = insight_prompt_template.format(query=optimized_query, sql=sql_query, data=data_str)
     except Exception:
-        insight_system_prompt = f"Generate JSON insights for query: {query}\nData:\n{data_str}"
+        insight_system_prompt = f"Generate JSON insights for query: {optimized_query}\nData:\n{data_str}"
         
     insight_response = await llm.ainvoke([SystemMessage(content=insight_system_prompt)])
     

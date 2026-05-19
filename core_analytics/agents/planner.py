@@ -40,10 +40,12 @@ async def planner_node(state: AgentState):
 
     # 1. Decompose into tasks using LLM
     llm = LLMClient().get_llm()
+    # Optimization: Repeat query twice for better LLM comprehension/attention
+    optimized_query = f"{query} {query}"
     try:
         with open("contracts/prompts/planner_prompt.txt", "r") as f:
             prompt_template = f.read()
-        system_prompt = prompt_template.format(query=query)
+        system_prompt = prompt_template.format(query=optimized_query)
         # Add schema context as a second system instruction or append to prompt
         system_prompt += f"\n\nSCHEMA CONTEXT:\n{schema_context}"
     except Exception:
