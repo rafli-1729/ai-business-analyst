@@ -61,4 +61,12 @@ ON CONFLICT (product_id) DO UPDATE SET
     _last_updated_at = NOW();
 
 -- Column Comments
-COMMENT ON TABLE gold.mart_product_performance IS 'Product performance mart. Use this for ranking products, analyzing category trends, and correlation between photos/weight and sales.';
+COMMENT ON TABLE gold.mart_product_performance IS 'Product performance mart. Use this for ranking products, analyzing category trends, and correlation between photos/weight and sales. Grain: One row per product.';
+COMMENT ON COLUMN gold.mart_product_performance.product_id IS 'Primary Key. Unique identifier for the product.';
+COMMENT ON COLUMN gold.mart_product_performance.product_category_name IS 'Normalized category name of the product in English.';
+COMMENT ON COLUMN gold.mart_product_performance.total_revenue IS 'Total product revenue generated (excluding freight) for delivered orders.';
+COMMENT ON COLUMN gold.mart_product_performance.total_units_sold IS 'Total quantity of this product sold.';
+COMMENT ON COLUMN gold.mart_product_performance.avg_price IS 'Average unit price of the product across all sales.';
+COMMENT ON COLUMN gold.mart_product_performance.avg_review_score IS 'Average customer review score for this product.';
+COMMENT ON COLUMN gold.mart_product_performance.total_photos IS 'Number of product photos uploaded to the catalog.';
+COMMENT ON COLUMN gold.mart_product_performance.product_weight_g IS 'Weight of the product in grams.';

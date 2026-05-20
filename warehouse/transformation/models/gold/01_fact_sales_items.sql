@@ -103,9 +103,25 @@ ON CONFLICT (order_item_key) DO UPDATE SET
     _last_updated_at = NOW();
 
 -- Column Comments for LLM Context
-COMMENT ON TABLE gold.fact_sales_items IS 'Ultimate wide table for sales analysis. Use this for revenue, product ranking, and geographic trends.';
-COMMENT ON COLUMN gold.fact_sales_items.order_item_key IS 'Unique identifier for each item in an order.';
-COMMENT ON COLUMN gold.fact_sales_items.product_category_name IS 'Normalized product category name in English.';
+COMMENT ON TABLE gold.fact_sales_items IS 'Ultimate wide table for sales analysis. Use this for revenue, product ranking, and geographic trends. Grain: One row per order item.';
+COMMENT ON COLUMN gold.fact_sales_items.order_item_key IS 'Primary Key. Format: order_id-order_item_id.';
+COMMENT ON COLUMN gold.fact_sales_items.order_id IS 'Unique identifier for the order.';
+COMMENT ON COLUMN gold.fact_sales_items.order_status IS 'Status of the order (delivered, canceled, etc). Filter by delivered for true revenue analysis.';
+COMMENT ON COLUMN gold.fact_sales_items.order_purchase_timestamp IS 'Timestamp when the order was placed.';
+COMMENT ON COLUMN gold.fact_sales_items.product_id IS 'Unique identifier for the product.';
+COMMENT ON COLUMN gold.fact_sales_items.product_category_name IS 'Normalized product category name in English. Format: snake_case (e.g., "health_beauty").';
 COMMENT ON COLUMN gold.fact_sales_items.product_weight_g IS 'Weight of the product in grams.';
+COMMENT ON COLUMN gold.fact_sales_items.product_length_cm IS 'Length of the product in centimeters.';
+COMMENT ON COLUMN gold.fact_sales_items.product_height_cm IS 'Height of the product in centimeters.';
+COMMENT ON COLUMN gold.fact_sales_items.product_width_cm IS 'Width of the product in centimeters.';
+COMMENT ON COLUMN gold.fact_sales_items.seller_id IS 'Unique identifier for the seller.';
+COMMENT ON COLUMN gold.fact_sales_items.seller_city IS 'City where the seller is located. Format: Title Case (e.g., "São Paulo"), UTF-8.';
+COMMENT ON COLUMN gold.fact_sales_items.seller_state IS 'State where the seller is located.';
+COMMENT ON COLUMN gold.fact_sales_items.customer_id IS 'Link to the specific customer-order record.';
+COMMENT ON COLUMN gold.fact_sales_items.customer_city IS 'City where the buyer is located. Format: Title Case (e.g., "Rio de Janeiro"), UTF-8.';
+COMMENT ON COLUMN gold.fact_sales_items.customer_state IS 'State where the buyer is located.';
+COMMENT ON COLUMN gold.fact_sales_items.payment_type IS 'Method of payment (credit_card, boleto, voucher, debit_card).';
 COMMENT ON COLUMN gold.fact_sales_items.payment_installments IS 'Number of installments chosen for the payment.';
-COMMENT ON COLUMN gold.fact_sales_items.order_status IS 'Status of the order (delivered, canceled, etc). Filter by delivered for revenue.';
+COMMENT ON COLUMN gold.fact_sales_items.price IS 'Selling price of the item.';
+COMMENT ON COLUMN gold.fact_sales_items.freight_value IS 'Shipping cost for the item.';
+COMMENT ON COLUMN gold.fact_sales_items.total_value IS 'Gross transaction value (Price + Freight). Use this for total revenue.';

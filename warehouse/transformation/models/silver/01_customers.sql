@@ -65,3 +65,8 @@ CREATE INDEX IF NOT EXISTS idx_silver_customers_unique_id ON silver.customers(cu
 CREATE INDEX IF NOT EXISTS idx_silver_customers_state ON silver.customers(customer_state);
 
 COMMENT ON TABLE silver.customers IS 'Cleaned and deduplicated customer dimension table with Master Geography normalization.';
+COMMENT ON COLUMN silver.customers.customer_id IS 'Primary Key. Link to the specific customer record in the raw orders data.';
+COMMENT ON COLUMN silver.customers.customer_unique_id IS 'Unique identifier for the buyer, remains consistent across multiple orders.';
+COMMENT ON COLUMN silver.customers.customer_zip_code_prefix IS 'Five digit zip code prefix of the buyer.';
+COMMENT ON COLUMN silver.customers.customer_city IS 'Normalized city name of the buyer. Format: Title Case (e.g., "Rio de Janeiro"), UTF-8 encoded.';
+COMMENT ON COLUMN silver.customers.customer_state IS 'State abbreviation of the buyer.';

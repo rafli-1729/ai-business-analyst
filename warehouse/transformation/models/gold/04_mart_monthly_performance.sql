@@ -35,5 +35,9 @@ ON CONFLICT (month_start_date) DO UPDATE SET
     _last_updated_at = NOW();
 
 -- Column Comments
-COMMENT ON TABLE gold.mart_monthly_performance IS 'High-level monthly trends. Use this for growth analysis and executive summaries.';
-COMMENT ON COLUMN gold.mart_monthly_performance.month_start_date IS 'The first day of the month for the reported metrics.';
+COMMENT ON TABLE gold.mart_monthly_performance IS 'High-level monthly aggregated trends for executive reporting. Grain: One row per Month.';
+COMMENT ON COLUMN gold.mart_monthly_performance.month_start_date IS 'Primary Key. The first day of the reporting month.';
+COMMENT ON COLUMN gold.mart_monthly_performance.total_revenue IS 'Sum of total_value (price + freight) for all delivered orders in the month.';
+COMMENT ON COLUMN gold.mart_monthly_performance.total_orders IS 'Count of unique delivered orders in the month.';
+COMMENT ON COLUMN gold.mart_monthly_performance.total_customers IS 'Count of unique buyers who made a purchase in the month.';
+COMMENT ON COLUMN gold.mart_monthly_performance.avg_order_value IS 'Average gross value per delivered order in the month.';

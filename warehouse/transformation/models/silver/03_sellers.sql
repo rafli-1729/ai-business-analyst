@@ -41,3 +41,7 @@ DO UPDATE SET
 CREATE INDEX IF NOT EXISTS idx_silver_sellers_state ON silver.sellers(seller_state);
 
 COMMENT ON TABLE silver.sellers IS 'Cleaned seller dimension table with normalized geography.';
+COMMENT ON COLUMN silver.sellers.seller_id IS 'Primary Key. Unique identifier for the seller.';
+COMMENT ON COLUMN silver.sellers.seller_zip_code_prefix IS 'Five digit zip code prefix of the seller.';
+COMMENT ON COLUMN silver.sellers.seller_city IS 'Normalized city name where the seller is located. Format: Title Case (e.g., "São Paulo"), UTF-8 encoded.';
+COMMENT ON COLUMN silver.sellers.seller_state IS 'State abbreviation of the seller.';

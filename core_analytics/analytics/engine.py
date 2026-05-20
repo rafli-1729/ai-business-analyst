@@ -1,13 +1,11 @@
-from core_analytics.agents.planner import planner_instance
-from core_analytics.analytics.artifact_synthesizer import ArtifactSynthesizer
+from core_analytics.agents.autonomous_analyst import autonomous_analyst_instance
 
 class AnalyticsEngine:
     def __init__(self):
-        self.planner = planner_instance
-        self.synthesizer = ArtifactSynthesizer()
+        self.analyst = autonomous_analyst_instance
 
     async def run(self, user_query: str):
-        # 1. Planner Agent performs decomposition and parallel execution
-        return await self.planner.decompose_and_execute(user_query)
+        # The autonomous analyst handles the ReAct loop directly
+        return await self.analyst.run(user_query)
 
 analytics_engine = AnalyticsEngine()

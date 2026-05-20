@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: fact_sales_items
+    description: >
+      Ultimate wide table for sales analysis. This is the primary table for revenue, product ranking, and geographic trends.
+      Grain: One row per order item. 
+      Important: Total Value = Price + Freight Value.
+    columns:
+      - name: order_item_key
+        description: "Primary Key. Unique identifier for each item in an order (formatted as order_id-order_item_id)."
+      - name: order_id
+        description: "Unique identifier for the order."
+      - name: order_status
+        description: "Current status of the order (e.g., delivered, shipped, canceled). Filter by 'delivered' for true revenue analysis."
+      - name: order_purchase_timestamp
+        description: "The timestamp when the order was placed."
+      - name: product_id
+        description: "Unique identifier for the product."
+      - name: product_category_name
+        description: "Normalized English category name of the product. Format: snake_case."
+      - name: product_weight_g
+        description: "Weight of the product in grams."
+      - name: product_length_cm
+        description: "Length of the product in centimeters."
+      - name: product_height_cm
+        description: "Height of the product in centimeters."
+      - name: product_width_cm
+        description: "Width of the product in centimeters."
+      - name: price
+        description: "Selling price of the item."
+      - name: freight_value
+        description: "Shipping cost for the item."
+      - name: total_value
+        description: "Gross value of the transaction (Price + Freight Value)."
+      - name: customer_city
+        description: "City name of the buyer, normalized via Master Geography. Format: Title Case, UTF-8."
+      - name: customer_state
+        description: "State abbreviation of the buyer."
+
+  - name: fact_order_fulfillment
+    description: >
+      Wide table for logistics and fulfillment performance. Use this for delivery times, SLAs, and customer satisfaction analysis.
+      Grain: One row per order.
+    columns:
+      - name: delivery_days_actual
+        description: "Actual number of days from order purchase to customer delivery."
+      - name: delivery_days_estimated
+        description: "Expected number of days for delivery as estimated at purchase time."
+      - name: is_late_delivery
+        description: "Boolean flag. True if delivered_customer_date > estimated_delivery_date."
+      - name: review_score
+        description: "Average customer review score for the order (1 to 5 stars)."
+
+  - name: mart_customer_behavior
+    description: >
+      Customer-centric mart for retention, loyalty, and LTV analysis. 
+      Grain: One row per unique customer (customer_unique_id).
+    columns:
+      - name: total_lifetime_value
+        description: "Total gross amount (price + freight) spent by the customer since their first purchase."
+      - name: total_orders
+        description: "Count of unique orders placed by this customer."
+      - name: is_repeat_customer
+        description: "True if the customer has placed more than one order."
+
+  - name: mart_monthly_performance
+    description: "High-level monthly aggregated trends for executive reporting."
+    columns:
+      - name: month_start_date
+        description: "The first day of the reporting month."
+      - name: total_revenue
+        description: "Sum of total_value (price + freight) for all delivered orders in the month."

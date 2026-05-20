@@ -11,6 +11,9 @@ test-paths: ["tests"]
 
 models:
   olist_ai_analytics:
+    +persist_docs:
+      relation: true
+      columns: true
     staging:
       +schema: silver
       +materialized: view

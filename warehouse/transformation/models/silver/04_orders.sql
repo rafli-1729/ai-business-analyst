@@ -60,4 +60,12 @@ CREATE INDEX IF NOT EXISTS idx_silver_orders_customer_id ON silver.orders(custom
 CREATE INDEX IF NOT EXISTS idx_silver_orders_purchase_timestamp ON silver.orders(order_purchase_timestamp);
 CREATE INDEX IF NOT EXISTS idx_silver_orders_status ON silver.orders(order_status);
 
-COMMENT ON TABLE silver.orders IS 'Cleaned transactional orders fact table.';
+COMMENT ON TABLE silver.orders IS 'Cleaned transactional orders fact table. Contains all lifecycle timestamps.';
+COMMENT ON COLUMN silver.orders.order_id IS 'Primary Key. Unique identifier for the order.';
+COMMENT ON COLUMN silver.orders.customer_id IS 'Foreign Key. Link to the silver.customers table.';
+COMMENT ON COLUMN silver.orders.order_status IS 'Current status: created, approved, invoiced, processing, shipped, delivered, unavailable, canceled.';
+COMMENT ON COLUMN silver.orders.order_purchase_timestamp IS 'Timestamp when the order was placed.';
+COMMENT ON COLUMN silver.orders.order_approved_at IS 'Timestamp when payment was approved.';
+COMMENT ON COLUMN silver.orders.order_delivered_carrier_date IS 'Timestamp when the order was picked up by the logistics partner.';
+COMMENT ON COLUMN silver.orders.order_delivered_customer_date IS 'Timestamp when the buyer received the order.';
+COMMENT ON COLUMN silver.orders.order_estimated_delivery_date IS 'The promised delivery date provided at purchase.';

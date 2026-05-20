@@ -49,7 +49,14 @@ ON CONFLICT (customer_unique_id) DO UPDATE SET
     _last_updated_at = NOW();
 
 -- Column Comments
-COMMENT ON TABLE gold.mart_customer_behavior IS 'Customer-centric mart for retention and LTV analysis. Use this for repeat buyer statistics.';
-COMMENT ON COLUMN gold.mart_customer_behavior.customer_city IS 'City name of the buyer.';
-COMMENT ON COLUMN gold.mart_customer_behavior.total_lifetime_value IS 'Total amount spent by the customer across all orders including freight.';
-COMMENT ON COLUMN gold.mart_customer_behavior.is_repeat_customer IS 'Indicates if the customer has made more than one purchase.';
+COMMENT ON TABLE gold.mart_customer_behavior IS 'Customer-centric mart for retention, loyalty, and LTV analysis. Grain: One row per unique customer.';
+COMMENT ON COLUMN gold.mart_customer_behavior.customer_unique_id IS 'Primary Key. Unique identifier for the buyer (across multiple orders).';
+COMMENT ON COLUMN gold.mart_customer_behavior.customer_city IS 'Latest city name of the buyer.';
+COMMENT ON COLUMN gold.mart_customer_behavior.customer_state IS 'State abbreviation of the buyer.';
+COMMENT ON COLUMN gold.mart_customer_behavior.first_purchase_at IS 'Timestamp of the customer first ever order.';
+COMMENT ON COLUMN gold.mart_customer_behavior.latest_purchase_at IS 'Timestamp of the most recent order.';
+COMMENT ON COLUMN gold.mart_customer_behavior.total_orders IS 'Count of unique orders placed by this customer.';
+COMMENT ON COLUMN gold.mart_customer_behavior.total_items_bought IS 'Total number of individual items purchased across all orders.';
+COMMENT ON COLUMN gold.mart_customer_behavior.total_lifetime_value IS 'Total gross amount (price + freight) spent by the customer.';
+COMMENT ON COLUMN gold.mart_customer_behavior.avg_order_value IS 'Average gross value per order for this customer.';
+COMMENT ON COLUMN gold.mart_customer_behavior.is_repeat_customer IS 'True if the customer has placed more than one order.';

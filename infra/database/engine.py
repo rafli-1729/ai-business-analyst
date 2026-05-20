@@ -7,13 +7,12 @@ from sqlalchemy import create_engine, text
 def create_postgres_engine(database_url: str):
     connect_args = {
         "sslmode": "require",
-        "options": "-c statement_timeout=300000"  # 5 minutes in milliseconds
+        "options": "-c statement_timeout=300000 -c default_transaction_read_only=on"  # 5 minutes in milliseconds
     }
     
     # Supabase pooler optimization
     if "pooler.supabase.com" in database_url or ":6543" in database_url:
-        # Append to existing options
-        connect_args["options"] += " -c default_transaction_read_only=off"
+        pass
 
     return create_engine(
         database_url, 

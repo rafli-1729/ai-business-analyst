@@ -64,7 +64,9 @@ async def run_query(
         chart_type = "table"
         
         for a in artifacts:
-            if a.type == "table":
+            if a.type == "sql":
+                sql_query = a.content
+            elif a.type == "table":
                 # Assuming content is markdown or list of dicts
                 if isinstance(a.content, list):
                     rows = a.content

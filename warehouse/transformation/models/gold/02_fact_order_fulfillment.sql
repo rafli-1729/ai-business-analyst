@@ -91,10 +91,22 @@ ON CONFLICT (order_id) DO UPDATE SET
     _last_updated_at = NOW();
 
 -- Column Comments
-COMMENT ON TABLE gold.fact_order_fulfillment IS 'Wide table for logistics and fulfillment. Use this for delivery times, late flags, and review scores.';
-COMMENT ON COLUMN gold.fact_order_fulfillment.delivery_days_actual IS 'Actual days taken from purchase to delivery.';
-COMMENT ON COLUMN gold.fact_order_fulfillment.processing_days IS 'Days taken from order approval to carrier pickup.';
-COMMENT ON COLUMN gold.fact_order_fulfillment.is_late_delivery IS 'Flag indicating if the delivery happened after the estimated date.';
-COMMENT ON COLUMN gold.fact_order_fulfillment.review_score IS 'Customer satisfaction rating (1-5).';
+COMMENT ON TABLE gold.fact_order_fulfillment IS 'Wide table for logistics and fulfillment performance. Use this for delivery times, late flags, and review scores. Grain: One row per order.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_id IS 'Primary Key. Unique identifier for the order.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.customer_unique_id IS 'Unique identifier for the buyer (static across multiple orders).';
 COMMENT ON COLUMN gold.fact_order_fulfillment.customer_city IS 'City name of the buyer.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.customer_state IS 'State abbreviation of the buyer.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.seller_id IS 'Unique identifier for the primary seller (highest price item).';
 COMMENT ON COLUMN gold.fact_order_fulfillment.seller_city IS 'City name where the seller is located.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.seller_state IS 'State abbreviation where the seller is located.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_status IS 'Status of the order (delivered, canceled, etc).';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_purchase_timestamp IS 'Timestamp when the order was placed.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_approved_at IS 'Timestamp when payment was approved.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_delivered_carrier_date IS 'Timestamp when the order was handed to the logistics partner.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_delivered_customer_date IS 'Actual timestamp when the customer received the order.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.order_estimated_delivery_date IS 'The delivery date promised to the customer at purchase.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.delivery_days_actual IS 'Actual days taken from purchase to delivery.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.delivery_days_estimated IS 'Expected days for delivery estimated at purchase.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.processing_days IS 'Days taken from order approval to carrier pickup.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.is_late_delivery IS 'Boolean flag. True if order_delivered_customer_date > order_estimated_delivery_date.';
+COMMENT ON COLUMN gold.fact_order_fulfillment.review_score IS 'Customer satisfaction rating (1-5).';

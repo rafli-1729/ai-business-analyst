@@ -1,269 +1,52 @@
-:root {
-  color-scheme: light;
-  --background: #f6f7f9;
-  --panel: #ffffff;
-  --text: #17202a;
-  --muted: #667085;
-  --line: #d9dee7;
-  --accent: #176b87;
-  --accent-dark: #0f4e64;
-  --danger: #b42318;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-* {
-  box-sizing: border-box;
+:root {
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-button,
-textarea {
-  font: inherit;
-}
-
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-  min-height: 100vh;
-}
-
-.questionPane,
-.resultPane {
-  padding: 32px;
-}
-
-.questionPane {
-  background: #eef3f5;
-  border-right: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.resultPane {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.eyebrow {
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: 0;
-  margin: 0 0 8px;
-  text-transform: uppercase;
-}
-
-h1 {
-  font-size: 34px;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.questionForm {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-textarea {
-  width: 100%;
-  resize: vertical;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px;
-  min-height: 140px;
-}
-
-button {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  color: var(--text);
-  cursor: pointer;
-  padding: 11px 14px;
-}
-
-.questionForm button {
-  background: var(--accent);
-  border-color: var(--accent);
+  padding: 0;
+  background-color: #06070a;
   color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+/* Scrollbar Mewah & Tipis */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
 }
 
-.starterList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.summaryBand,
-.sqlPanel,
-.timingPanel,
-.emptyState,
-.errorBox {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 18px;
-}
-
-.summaryBand {
-  display: block;
-}
-
-.markdownSummary {
-  line-height: 1.55;
-}
-
-.markdownSummary > *:first-child {
-  margin-top: 0;
-}
-
-.markdownSummary > *:last-child {
-  margin-bottom: 0;
+/* Animasi Halus */
+* {
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .markdownSummary table {
-  min-width: 520px;
-}
-
-.markdownTableShell {
-  margin: 12px 0;
-  overflow-x: auto;
-}
-
-.markdownSummary h1,
-.markdownSummary h2,
-.markdownSummary h3 {
-  font-size: 18px;
-  line-height: 1.3;
-  margin: 16px 0 8px;
-}
-
-.markdownSummary ul,
-.markdownSummary ol {
-  padding-left: 22px;
-}
-
-.markdownSummary li {
-  margin: 6px 0;
-}
-
-pre {
-  margin: 0;
-  overflow-x: auto;
-  white-space: pre-wrap;
-}
-
-.timingHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.timingHeader h2,
-.timingGrid h3 {
-  margin: 0;
-}
-
-.timingHeader h2 {
-  font-size: 18px;
-}
-
-.timingGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 14px;
-}
-
-.timingGrid h3 {
-  color: #344054;
-  font-size: 14px;
-}
-
-.timingGrid dl {
-  display: grid;
-  gap: 6px;
-  margin: 10px 0 0;
-}
-
-.timingGrid dl div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  border-bottom: 1px solid #edf0f4;
-  padding: 5px 0;
-}
-
-.timingGrid dt {
-  color: var(--muted);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-
-.timingGrid dd {
-  font-size: 12px;
-  margin: 0;
-  text-align: right;
-}
-
-.tableShell {
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-}
-
-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  margin: 1rem 0;
 }
 
-th,
-td {
-  border-bottom: 1px solid var(--line);
-  padding: 10px 12px;
+.markdownSummary th, .markdownSummary td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
   text-align: left;
-  vertical-align: top;
 }
 
-th {
-  background: #f3f6f8;
-  color: #344054;
-}
-
-.errorBox {
-  color: var(--danger);
-}
-
-@media (max-width: 860px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .questionPane {
-    border-right: none;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .summaryBand {
-    grid-template-columns: 1fr;
-  }
-
-  .timingGrid {
-    grid-template-columns: 1fr;
-  }
+.markdownSummary th {
+  color: #c084fc;
+  font-weight: 600;
 }

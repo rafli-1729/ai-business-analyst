@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: customers
+    description: "Normalized customer data with geography corrections."
+    columns:
+      - name: customer_id
+        description: "Primary Key for the specific customer-order link."
+      - name: customer_unique_id
+        description: "Unique identifier for the buyer (across multiple orders)."
+
+  - name: orders
+    description: "Transactional order data with multi-step status timestamps."
+    columns:
+      - name: order_status
+        description: "Workflow status: created, approved, invoiced, processing, shipped, delivered, unavailable, canceled."
+
+  - name: products
+    description: "Product catalog with weight and dimensions."
+    columns:
+      - name: product_category_name
+        description: "Category name normalized to English. Format: snake_case (e.g., 'health_beauty')."
+
+  - name: order_items
+    description: "Line-level items for each order."
+    columns:
+      - name: price
+        description: "Individual unit price."
+      - name: freight_value
+        description: "Shipping fee allocated to this item."
+ name: freight_value
+        description: "Shipping fee allocated to this item."

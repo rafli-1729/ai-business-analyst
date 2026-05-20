@@ -67,3 +67,12 @@ DO UPDATE SET
 CREATE INDEX IF NOT EXISTS idx_silver_products_category ON silver.products(product_category_name);
 
 COMMENT ON TABLE silver.products IS 'Cleaned product dimension table with normalized categories.';
+COMMENT ON COLUMN silver.products.product_id IS 'Primary Key. Unique identifier for the product.';
+COMMENT ON COLUMN silver.products.product_category_name IS 'Category name normalized to English. Format: snake_case (e.g., "health_beauty").';
+COMMENT ON COLUMN silver.products.product_name_length IS 'Number of characters in the product name.';
+COMMENT ON COLUMN silver.products.product_description_length IS 'Number of characters in the product description.';
+COMMENT ON COLUMN silver.products.product_photos_qty IS 'Number of photos in the product listing.';
+COMMENT ON COLUMN silver.products.product_weight_g IS 'Product weight in grams.';
+COMMENT ON COLUMN silver.products.product_length_cm IS 'Product length in centimeters.';
+COMMENT ON COLUMN silver.products.product_height_cm IS 'Product height in centimeters.';
+COMMENT ON COLUMN silver.products.product_width_cm IS 'Product width in centimeters.';
