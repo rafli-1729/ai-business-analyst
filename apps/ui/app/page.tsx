@@ -323,7 +323,7 @@ export default function AnalyticsWorkspace() {
                   <Paper sx={{ ...bentoCard, p: 4, bgcolor: alpha(TOKENS.accent, 0.02) }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
                       <AssignmentOutlined sx={{ color: TOKENS.accent }} />
-                      <Typography variant="h6">Olist Warehouse Dataset</Typography>
+                      <Typography variant="h6">{hasSearched ? "Strategic Summary" : "Olist Warehouse Dataset"}</Typography>
                     </Box>
                     <Divider sx={{ opacity: 0.05, mb: 2 }} />
                     <Box sx={{ color: "text.secondary", fontSize: "1.1rem", lineHeight: 1.8 }}>
